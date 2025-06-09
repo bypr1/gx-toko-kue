@@ -25,7 +25,7 @@ func main() {
 	})
 
 	hargaHandler := handler.NewHargaHandler(db)
-	e.POST("/hitung-hpp", hargaHandler.HitungHPPPerKue)
+	e.POST("/hitung-hpp/:id", hargaHandler.HitungHPPPerKue)
 
 	// Start server
 	if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
