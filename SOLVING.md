@@ -11,7 +11,7 @@ flowchart TD
     A[Mulai] --> B[Tentukan harga bahan kue]
     B --> C[Tentukan ongkos tenaga kerja]
     C --> D[Hitung keuntungan yang diinginkan]
-    D --> E[Hitung harga pokok produksi (HPP)]
+    D --> E[Hitung harga pokok produksi HPP]
     E --> F[Tentukan harga jual kue]
     F --> G[Selesai]
 ```
