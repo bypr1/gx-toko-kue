@@ -2,8 +2,8 @@ package handler
 
 import (
 	"github.com/bypr1/gx-toko-kue/app/model"
-	"gorm.io/gorm"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type hargaHandler struct {
@@ -36,25 +36,27 @@ func (h *hargaHandler) HitungHPPPerKue(e echo.Context) error {
 	}
 
 	totalHargaBahan := 0
-	for _, bahan  := range bahan2 {
+	for _, bahan := range bahan2 {
 		totalHargaBahan = totalHargaBahan + (bahan.Jumlah * bahan.Bahan.Harga)
 	}
 
-	//Hitung total harga buruh
-	var buruh []model.TenagaKerja
-	if err := h.db.Find(&buruh).Error; err != nil {
+	//Hitung total harga buruh2
+	var buruh2 []model.TenagaKerja
+	if err := h.db.Find(&buruh2).Error; err != nil {
 		return e.JSON(500, map[string]interface{}{
 			"error": "Gagal mengambil data buruh",
 		})
 	}
 
-	for _, bahan  := range buruh {
-		totalHargaBuruh = totalHargaBuruh + (bahan.Jumlah * bahan.Bahan.Harga)
+	totalHargaBuruh := 0
+	for _, buruh := range buruh2 {
+		totalHargaBuruh += buruh.BiayaHarian / kue.ProduksiHarian
 	}
 
 	//Hitung berdasarkan upah harian
-	totalHargaBuruh += 
+	totalHPP := totalHargaBahan + totalHargaBuruh
 
-
-	return nil
+	return e.JSON(200, map[string]interface{}{
+		"total_hpp": totalHPP,
+	})
 }
