@@ -5,14 +5,14 @@ CREATE TABLE IF NOT EXISTS kue (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
     produksi_harian INT NOT NULL,
-    keuntungan_diinginkan DECIMAL(10, 2) NOT NULL,
-    harga_terakhir DECIMAL(10, 2) NOT NULL
+    keuntungan_diinginkan INT NOT NULL,
+    harga_terakhir INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS bahan (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
-    harga DECIMAL(10, 2) NOT NULL
+    harga INT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS kue_bahan (
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS kue_bahan (
 CREATE TABLE IF NOT EXISTS tenaga_kerja (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
-    biaya_harian DECIMAL(10, 2) NOT NULL
+    biaya_harian INT NOT NULL
 )
 
 CREATE TABLE IF NOT EXISTS riwayat_hpp (
