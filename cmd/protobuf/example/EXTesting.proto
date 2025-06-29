@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+// <your-service-name-or-feature>
+package example;
+
+// service/internal/pkg/grpc/<your-service-name>/<feature-name>
+// Please follow this path for your protobuf
+option go_package = "internal/pkg/grpc/example";
+
+import "EXResponse.proto";
+
+service TestingService {
+  rpc Store(TestingRequest) returns (EXResponse) {}
+  rpc RollbackStore(RollBackRequest) returns (EXResponse) {}
+}
+
+message TestingRequest {
+  string name = 1;
+  repeated TestingSubRequest subs = 2;
+}
+
+message TestingSubRequest {
+  string name = 1;
+}
+
+message RollBackRequest {
+  bytes data = 1;
+}

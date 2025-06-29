@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+// <your-service-name-or-feature>
+package example;
+
+// service/internal/pkg/grpc/<your-service-name>/<feature-name>
+// Please follow this path for your protobuf
+option go_package = "internal/pkg/grpc/example";
+
+message EXResponse {
+  string message = 1;
+  bytes result = 2;
+}
