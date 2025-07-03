@@ -1,0 +1,157 @@
+version: '3.9'
+
+services:
+  # POS Service
+  gx_pos_db:
+    image: postgres:15
+    container_name: gx_pos_db
+    environment:
+      POSTGRES_USER: posuser
+      POSTGRES_PASSWORD: pospass
+      POSTGRES_DB: gx_pos
+    ports:
+      - "5432:5432"
+    volumes:
+      - pos_db_data:/var/lib/postgresql/data
+
+  gx_pos_server:
+    image: golang:1.21
+    container_name: gx_pos_server
+    depends_on:
+      - gx_pos_db
+      - gx_notification_queue
+      - gx_cake_server
+      - gx_hrd_server
+    environment:
+      DB_HOST: gx_pos_db
+      DB_USER: posuser
+      DB_PASSWORD: pospass
+      DB_NAME: gx_pos
+      DB_PORT: 5432
+      NOTIFICATION_QUEUE_HOST: gx_notification_queue
+      CAKE_SERVER_HOST: gx_cake_server
+      HRD_SERVER_HOST: gx_hrd_server
+    ports:
+      - "8081:8080"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: ["go", "run", "cmd/possvc/main.go"]
+
+  # Cake Service
+  gx_cake_db:
+    image: mysql:8.0
+    container_name: gx_cake_db
+    environment:
+      MYSQL_ROOT_PASSWORD: cakeroot
+      MYSQL_DATABASE: gx_cake
+      MYSQL_USER: cakeuser
+      MYSQL_PASSWORD: cakepass
+    ports:
+      - "3307:3306"
+    volumes:
+      - cake_db_data:/var/lib/mysql
+
+  gx_cake_server:
+    image: golang:1.21
+    container_name: gx_cake_server
+    depends_on:
+      - gx_cake_db
+      - gx_notification_queue
+    environment:
+      DB_HOST: gx_cake_db
+      DB_USER: cakeuser
+      DB_PASSWORD: cakepass
+      DB_NAME: gx_cake
+      DB_PORT: 3306
+      NOTIFICATION_QUEUE_HOST: gx_notification_queue
+    ports:
+      - "8082:8080"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: ["go", "run", "cmd/cakesvc/main.go"]
+
+  # HRD Service
+  gx_hrd_db:
+    image: mysql:8.0
+    container_name: gx_hrd_db
+    environment:
+      MYSQL_ROOT_PASSWORD: hrdroot
+      MYSQL_DATABASE: gx_hrd
+      MYSQL_USER: hrduser
+      MYSQL_PASSWORD: hrdpass
+    ports:
+      - "3308:3306"
+    volumes:
+      - hrd_db_data:/var/lib/mysql
+
+  gx_hrd_server:
+    image: golang:1.21
+    container_name: gx_hrd_server
+    depends_on:
+      - gx_hrd_db
+    environment:
+      DB_HOST: gx_hrd_db
+      DB_USER: hrduser
+      DB_PASSWORD: hrdpass
+      DB_NAME: gx_hrd
+      DB_PORT: 3306
+    ports:
+      - "8083:8080"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: ["go", "run", "cmd/hrdsvc/main.go"]
+
+  # Notification Service
+  gx_notification_db:
+    image: postgres:15
+    container_name: gx_notification_db
+    environment:
+      POSTGRES_USER: notifuser
+      POSTGRES_PASSWORD: notifpass
+      POSTGRES_DB: gx_notification
+    ports:
+      - "5433:5432"
+    volumes:
+      - notification_db_data:/var/lib/postgresql/data
+
+  gx_notification_server:
+    image: golang:1.21
+    container_name: gx_notification_server
+    depends_on:
+      - gx_notification_db
+      - gx_notification_queue
+    environment:
+      DB_HOST: gx_notification_db
+      DB_USER: notifuser
+      DB_PASSWORD: notifpass
+      DB_NAME: gx_notification
+      DB_PORT: 5432
+      QUEUE_HOST: gx_notification_queue
+    ports:
+      - "8084:8080"
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: ["go", "run", "cmd/notificationsvc/main.go"]
+
+  gx_notification_queue:
+    image: rabbitmq:3-management
+    container_name: gx_notification_queue
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbituser
+      RABBITMQ_DEFAULT_PASS: rabbitpass
+    volumes:
+      - notification_queue_data:/var/lib/rabbitmq
+
+volumes:
+  pos_db_data:
+  cake_db_data:
+  hrd_db_data:
+  notification_db_data:
+  notification_queue_data:
