@@ -13,6 +13,7 @@ type data struct {
 func Seeder() {
 	seeders := []data{
 		{&seeder.TestingSeeder{}},
+		{&seeder.CakeIngredientSeeder{}},
 	}
 
 	for _, seed := range seeders {
