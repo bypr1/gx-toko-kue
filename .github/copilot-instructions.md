@@ -1,5 +1,8 @@
 # GitHub Copilot Custom Instructions for Go Backend Service
 
+## Role Instructions
+You are a Go backend service developer in globalxtreme. You are responsible for implementing boilerplate and helping developers follow the coding standards and architecture patterns established in the project. You will provide code suggestions, explanations, and best practices for building scalable and maintainable backend services. Everytime you suggest code, you must follow the existing architecture patterns, use the established error handling mechanisms, leverage the custom framework utilities, maintain consistency with existing code style, consider performance and scalability, include proper validation and error handling, and use appropriate logging where necessary. Ensure always use core library for common operations and utilities which can be found in `github.com/globalxtreme/go-core/v2`.
+
 ## Project Overview
 This is a Go backend service built with a layered architecture following Domain-Driven Design principles. The service uses gRPC, REST APIs, message queues (RabbitMQ), and various third-party integrations.
 
@@ -47,11 +50,19 @@ This is a Go backend service built with a layered architecture following Domain-
     - **parser/**: Data transformation utilities usually for API responses
     - **port/**: Repository interfaces and ports
     - **saga/**: Saga pattern implementations for distributed transactions
-    - **service/**: Business logic services
-    - ***/**: Domain-specific utilities, hooks and helpers
-  - ***/**: Domain-specific packages
-  - 
+      - **grpc/**: gRPC saga implementations
+      - **privateapi/**: Private API saga implementations
+    - **thirdparty/**: Integrations with third-party api services such as Email, Telegram, etc.
+    - ***/**: Domain-specific packages, hooks and helpers
+  - ***/**: Domain-specific code that only applies to the specific domain
+    - **repository/**: Data access layer for the domain
+    - **service/**: Business logic for the domain
+    - **mail/**: Email sending and templating
+    - **excel/**: Excel file processing and generation
+    - **pdf/**: PDF generation
 - **storage/**: File storage and logs
+  - **app/**: Application-specific storage
+  - **logs/**: Application logs
 - **stubs/**: Code generation templates
 
 ### Layered Architecture
@@ -79,6 +90,10 @@ Follow this pattern when creating new features:
 
 Example model structure:
 ```go
+import (
+	xtrememodel "github.com/globalxtreme/go-core/v2/model"
+)
+
 type YourModel struct {
     xtrememodel.BaseModel
     Name string `gorm:"column:name;type:varchar(250);default:null"`
@@ -93,17 +108,510 @@ func (model YourModel) SetReference() uint {
 }
 ```
 
-### Repository Pattern
-- Create interfaces in `internal/pkg/port/repository.go`
-- Implement repositories in respective domain folders
-- Use GORM for database operations
-- Handle errors appropriately
+### Database Migrations
+- When creating new migrations, *YOU MUST ALWAYS* use cli command: `go run ./cmd/main.go gen:migration <NAME>`
+- For migration that creates new tables, use `<FEATURE_NAME>` as the `<NAME>`, e.g., `Product`
+- For migration that modifies existing tables, use `<FEATURE_NAME>Batch<NumberOfTimesTheFeatureWasModified>` format. Batch number for migration that modifies existing tables should start from 2, make sure to look for the last batch number used in the file in `internal/app/database/migration/`
+- Then register migrations in `internal/app/database/migrate.go`
+- After new migration is created, you should implement the file content following the example below.
 
-### Service Layer
-- Business logic should be in service layer
-- Services should depend on repository interfaces
-- Handle validation and business rules
-- Use appropriate error handling from `internal/pkg/error/`
+Example migration for new table:
+```go
+package migration
+
+import (
+	"os"
+	"service/internal/pkg/config"
+	"service/internal/pkg/model"
+
+	xtremedb "github.com/globalxtreme/go-core/v2/database"
+)
+
+type Product_1726651240922259 struct{}
+
+func (Product_1726651240922259) Reference() string {
+	return "Product_1726651240922259"
+}
+
+func (Product_1726651240922259) Tables() []xtremedb.Table {
+	owner := os.Getenv("DB_OWNER")
+
+	return []xtremedb.Table{
+		{Connection: config.PgSQL, CreateTable: model.Product{}, Owner: owner},
+		{Connection: config.PgSQL, CreateTable: model.ProductComponentCategory{}, Owner: owner},
+		{Connection: config.PgSQL, CreateTable: model.ProductVariantInformation{}, Owner: owner},
+	}
+}
+
+func (Product_1726651240922259) Columns() []xtremedb.Column {
+	return []xtremedb.Column{}
+}
+
+```
+
+Example migration for modifying existing table:
+```go
+package migration
+
+import (
+	"os"
+	"service/internal/pkg/config"
+	"service/internal/pkg/model"
+
+	xtremedb "github.com/globalxtreme/go-core/v2/database"
+)
+
+type ProductBatch2_1738380774908382 struct{}
+
+func (ProductBatch2_1738380774908382) Reference() string {
+	return "ProductBatch2_1738380774908382"
+}
+
+func (ProductBatch2_1738380774908382) Tables() []xtremedb.Table {
+	owner := os.Getenv("DB_OWNER")
+
+	return []xtremedb.Table{
+		{Connection: config.PgSQL, RenameTable: xtremedb.Rename{Old: "setting_add_ons", New: "product_component_add_ons"}, Owner: owner},
+		{Connection: config.PgSQL, RenameTable: xtremedb.Rename{Old: "setting_informations", New: "product_component_informations"}, Owner: owner},
+    {Connection: config.PgSQL, DropTable: model.ProductVariant{}, Owner: owner},
+	}
+}
+
+func (ProductBatch2_1738380774908382) Columns() []xtremedb.Column {
+	return []xtremedb.Column{
+		{
+			Connection:  config.PgSQL,
+			Model:       model.ProductVariant{},
+			DropColumns: []string{"column1", "column2"},
+			RenameColumns: []xtremedb.Rename{
+				{
+					Old: "oldColumnName",
+					New: "newColumnName",
+				},
+			},
+			AddColumns: []string{"newColumn1", "newColumn2"},
+			AlterColumns: []string{"column3", "column4"},
+		},
+	}
+}
+
+```
+
+### Database Seeder
+- Put in `internal/app/database/seeder/`
+- Implement seeders for initial data population
+- Register seeders in `internal/app/database/seeder.go`
+
+Example seeder:
+```go
+package seeder
+
+import (
+	"service/internal/pkg/config"
+	"service/internal/pkg/model"
+)
+
+type TestingSeeder struct{}
+
+func (seed *TestingSeeder) Seed() {
+	testings := seed.setTestingData()
+	for _, testing := range testings {
+		var count int64
+		config.PgSQL.Model(&model.Testing{}).Where("name = ?", testing["name"]).Count(&count)
+		if count > 0 {
+			continue
+		}
+
+		config.PgSQL.Create(&model.Testing{
+			Name: testing["name"].(string),
+		})
+	}
+}
+
+func (seed *TestingSeeder) setTestingData() []map[string]interface{} {
+	return []map[string]interface{}{
+		{
+			"name": "Testing",
+		},
+	}
+}
+```
+
+### Form Request
+- Use `internal/pkg/form/` for request validation
+- Implement form validation using `github.com/go-playground/validator/v10`
+
+Example form structure:
+```go
+package form
+
+import (
+	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
+	"net/http"
+	"service/internal/pkg/core"
+)
+
+type TestingForm struct { // Example form structure
+	Name string   `json:"name"`
+	Subs []string `json:"subs" validate:"required"`
+}
+
+func (rule *TestingForm) Validate() {
+	va := xtrememdw.Validator{}
+	va.Make(rule)
+}
+
+func (rule *TestingForm) APIParse(r *http.Request) {
+	core.BaseForm{}.APIParse(r, &rule) //if content type is application/json
+  rule.Request = r // if content type is multipart/form-data
+}
+```
+
+### Response Parser
+- Use `internal/pkg/parser/` for data transformation
+- Implement parsers for API responses
+
+Example parser structure:
+```go
+package parser
+
+import (
+	xtremefs "github.com/globalxtreme/go-core/v2/filesystem"
+	"service/internal/pkg/model"
+)
+
+type TestingParser struct {
+	Array  []model.Testing
+	Object model.Testing
+}
+
+func (parser TestingParser) Get() []interface{} { //Get all data
+	var result []interface{}
+
+	for _, activity := range parser.Array {
+		firstParser := TestingParser{Object: activity}
+		result = append(result, firstParser.First())
+	}
+
+	return result
+}
+
+func (parser TestingParser) First() interface{} { // Get single data
+	activity := parser.Object
+
+	var resSubs []interface{}
+	for _, sub := range activity.Subs {
+		resSubs = append(resSubs, map[string]interface{}{
+			"id":        sub.ID,
+			"name":      sub.Name,
+			"createdAt": sub.CreatedAt.Format("02/01/2006 15:04"),
+		})
+	}
+
+	return map[string]interface{}{
+		"id":        activity.ID,
+		"name":      activity.Name,
+		"createdAt": activity.CreatedAt.Format("02/01/2006 15:04"),
+		"file":      xtremefs.Storage{}.GetFullPathURL("ckH2cahaAaDMNVgS2xdM1697957810885349000.png"),
+		"subs":      resSubs,
+	}
+}
+```
+
+### Domain Specific Codes
+- Place domain-specific code in `internal/<domain>/`
+- Use `repository/` for data access layer
+
+Example repository structure:
+```go
+package repository
+
+import (
+	xtrememodel "github.com/globalxtreme/go-core/v2/model"
+	"gorm.io/gorm"
+	"net/url"
+	"service/internal/pkg/config"
+	"service/internal/pkg/core"
+	error2 "service/internal/pkg/error"
+	"service/internal/pkg/form"
+	"service/internal/pkg/model"
+)
+
+type TestingRepository interface {
+	core.TransactionRepository
+
+	FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Testing
+	Find(parameter url.Values) ([]model.Testing, interface{}, error)
+
+	Store(form form.TestingForm) model.Testing
+	Delete(testing model.Testing)
+
+	AddSub(testing model.Testing, sub string) model.TestingSub
+	DeleteSub(testingSub model.TestingSub)
+}
+
+func NewTestingRepository(args ...*gorm.DB) TestingRepository {
+	repository := testingRepository{}
+	if len(args) > 0 {
+		repository.transaction = args[0]
+	}
+
+	return &repository
+}
+
+type testingRepository struct {
+	transaction *gorm.DB
+}
+
+func (repo *testingRepository) SetTransaction(tx *gorm.DB) {
+	repo.transaction = tx
+}
+
+func (repo *testingRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Testing {
+	var testing model.Testing
+
+	query := config.PgSQL
+	if len(args) > 0 {
+		query = args[0](query)
+	}
+
+	err := query.First(&testing, "id = ?", id).Error
+	if err != nil {
+		error2.ErrXtremeTestingGet(err.Error())
+	}
+
+	return testing
+}
+
+func (repo *testingRepository) Find(parameter url.Values) ([]model.Testing, interface{}, error) {
+	fromDate, toDate := core.SetDateRange(parameter)
+
+	query := config.PgSQL.Preload("Subs").
+		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+
+	if search := parameter.Get("search"); len(search) > 3 {
+		query = query.Where("name LIKE ?", "%"+search+"%")
+	}
+
+	testings, pagination, err := xtrememodel.Paginate(query.Order("id DESC"), parameter, model.Testing{})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return testings, pagination, nil
+}
+
+func (repo *testingRepository) Store(form form.TestingForm) model.Testing {
+	testing := model.Testing{
+		Name: form.Name,
+	}
+
+	err := repo.transaction.Create(&testing).Error
+	if err != nil {
+		error2.ErrXtremeTestingSave(err.Error())
+	}
+
+	return testing
+}
+
+func (repo *testingRepository) Delete(testing model.Testing) {
+	err := repo.transaction.Delete(&testing).Error
+	if err != nil {
+		error2.ErrXtremeTestingDelete(err.Error())
+	}
+}
+
+func (repo *testingRepository) AddSub(testing model.Testing, sub string) model.TestingSub {
+	testingSub := model.TestingSub{
+		TestingId: testing.ID,
+		Name:      sub,
+	}
+
+	err := repo.transaction.Create(&testingSub).Error
+	if err != nil {
+		error2.ErrXtremeTestingSubSave(err.Error())
+	}
+
+	return testingSub
+}
+
+func (repo *testingRepository) DeleteSub(testingSub model.TestingSub) {
+	err := repo.transaction.Delete(&testingSub).Error
+	if err != nil {
+		error2.ErrXtremeTestingSubDelete(err.Error())
+	}
+}
+
+```
+
+- Use `service/` for business logic
+  - Every service that would modify the data (Create/Update/Delete) should use a transaction and save their action as `Activity`
+Example service structure:
+```go
+package service
+
+import (
+	"fmt"
+	"service/internal/pkg/activity"
+	"service/internal/pkg/config"
+	"service/internal/pkg/constant"
+	error2 "service/internal/pkg/error"
+	form2 "service/internal/pkg/form"
+	"service/internal/pkg/model"
+	"service/internal/pkg/port"
+	"service/internal/testing/repository"
+
+	xtremefs "github.com/globalxtreme/go-core/v2/filesystem"
+	"gorm.io/gorm"
+)
+
+type TestingService interface {
+	SetTransaction(tx *gorm.DB)
+	SetActivityRepository(repo port.ActivityRepository)
+
+	Create(form form2.TestingForm) model.Testing
+	Update(form form2.TestingForm, id int64) model.Testing
+	Delete(id int64) error
+	UploadByFile(form form2.TestingUploadForm) map[string]interface{}
+	UploadByContent(form form2.TestingUploadContentForm) map[string]interface{}
+}
+
+func NewTestingService() TestingService {
+	return &testingService{}
+}
+
+type testingService struct {
+	tx *gorm.DB
+
+	repository         repository.TestingRepository
+	activityRepository port.ActivityRepository
+}
+
+func (srv *testingService) SetTransaction(tx *gorm.DB) {
+	srv.tx = tx
+}
+
+func (srv *testingService) SetActivityRepository(repo port.ActivityRepository) {
+	srv.activityRepository = repo
+}
+
+func (srv *testingService) Create(form form2.TestingForm) model.Testing {
+	var testing model.Testing
+
+	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+		srv.repository = repository.NewTestingRepository(tx)
+
+		testing = srv.repository.Store(form)
+
+		for _, sub := range form.Subs {
+			testingSub := srv.repository.AddSub(testing, sub)
+			testing.Subs = append(testing.Subs, testingSub)
+		}
+
+		activity.UseActivity{}.SetReference(testing).SetNewProperty(constant.ACTION_CREATE).
+			Save(fmt.Sprintf("Enter new testing: %s [%d]", testing.Name, testing.ID))
+
+		return nil
+	})
+
+	return testing
+}
+
+func (srv *testingService) Update(form form2.TestingForm, id int64) model.Testing {
+	var testing model.Testing
+
+	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+		srv.repository = repository.NewTestingRepository(tx)
+
+		testing = srv.repository.FirstById(id, func(query *gorm.DB) *gorm.DB {
+			return query.Preload("Subs")
+		})
+		if testing.ID == 0 {
+			error2.ErrXtremeTestingGet("Testing not found")
+		}
+
+		testing.Name = form.Name
+
+		for _, sub := range testing.Subs {
+			srv.repository.DeleteSub(sub)
+		}
+
+		for _, sub := range form.Subs {
+			testingSub := srv.repository.AddSub(testing, sub)
+			testing.Subs = append(testing.Subs, testingSub)
+		}
+
+		activity.UseActivity{}.SetReference(testing).SetNewProperty(constant.ACTION_UPDATE).
+			Save(fmt.Sprintf("Update testing: %s [%d]", testing.Name, testing.ID))
+
+		return nil
+	})
+
+	return testing
+}
+
+func (srv *testingService) Delete(id int64) error {
+	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+		srv.repository = repository.NewTestingRepository(tx)
+		testing := srv.repository.FirstById(id, func(query *gorm.DB) *gorm.DB {
+			return query.Preload("Subs")
+		})
+		if testing.ID == 0 {
+			error2.ErrXtremeTestingGet("Testing not found")
+		}
+		srv.repository.Delete(testing)
+		activity.UseActivity{}.SetReference(testing).SetNewProperty(constant.ACTION_DELETE).
+			Save(fmt.Sprintf("Delete testing: %s [%d]", testing.Name, testing.ID))
+		return nil
+	})
+	return nil
+}
+
+func (srv *testingService) UploadByFile(form form2.TestingUploadForm) map[string]interface{} {
+	uploader := xtremefs.Uploader{Path: constant.PathImageTesting(), IsPublic: true}
+	filePath, err := uploader.MoveFile(form.Request, "testFile[testing][0]")
+	if err != nil {
+		error2.ErrXtremeTestingSave("Unable to upload file: " + err.Error())
+	}
+
+	storage := xtremefs.Storage{IsPublic: uploader.IsPublic}
+
+	return map[string]interface{}{
+		"url":      storage.GetFullPathURL(filePath.(string)),
+		"fullPath": storage.GetFullPath(filePath.(string)),
+		"path":     filePath.(string),
+	}
+}
+
+func (srv *testingService) UploadByContent(form form2.TestingUploadContentForm) map[string]interface{} {
+	uploader := xtremefs.Uploader{Path: constant.PathImageTesting(), IsPublic: true}
+	filePath, err := uploader.MoveContent(form.Content)
+	if err != nil {
+		error2.ErrXtremeTestingSave("Unable to upload file: " + err.Error())
+	}
+
+	storage := xtremefs.Storage{IsPublic: uploader.IsPublic}
+
+	return map[string]interface{}{
+		"url":      storage.GetFullPathURL(filePath.(string)),
+		"fullPath": storage.GetFullPath(filePath.(string)),
+		"path":     filePath.(string),
+	}
+}
+```
+
+- Use `mail/` for email sending and templating
+- Use `excel/` for Excel file processing and generation
+- Use `pdf/` for PDF generation
+
+
+
+### Route Handlers
+- When creating new handlers, *YOU MUST ALWAYS* use cli command: `go run ./cmd/main.go gen:handler <NAME> --type=<web/mobile> --resource`
+- Use `--type=web` for web API handlers, `--type=mobile` for mobile API handlers
+- Use `--resource` flag to generate resourceful handlers
+- Implement handlers in `internal/app/api/<type>/handler/`
+- Register created handlers in `internal/app/api/<type>/router.go`
 
 ### API Handlers
 - Separate handlers for different API types (mobile, web, private)
