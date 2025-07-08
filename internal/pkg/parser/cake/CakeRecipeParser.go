@@ -23,5 +23,9 @@ func (parser CakeRecipeParser) First() interface{} {
 		"ingredientId": recipe.IngredientID,
 		"amount":       recipe.Amount,
 		"unit":         recipe.Unit,
+		"ingredient": map[string]interface{}{
+			"name": recipe.Ingredient.Name,
+			"unit": recipe.Ingredient.Unit,
+		},
 	}
 }

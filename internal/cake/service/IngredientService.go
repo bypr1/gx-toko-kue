@@ -9,6 +9,7 @@ import (
 	error2 "service/internal/pkg/error"
 	form2 "service/internal/pkg/form/cake"
 	"service/internal/pkg/model/cake"
+	cakeparser "service/internal/pkg/parser/cake"
 	"service/internal/pkg/port"
 
 	"gorm.io/gorm"
@@ -24,7 +25,9 @@ type IngredientService interface {
 }
 
 func NewIngredientService() IngredientService {
-	return &ingredientService{}
+	return &ingredientService{
+		tx: config.CakeSQL,
+	}
 }
 
 type ingredientService struct {
@@ -45,12 +48,12 @@ func (srv *ingredientService) SetActivityRepository(repo port.ActivityRepository
 func (srv *ingredientService) Create(form form2.IngredientForm) cake.Ingredient {
 	var ingredient cake.Ingredient
 
-	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewIngredientRepository(tx)
 
 		ingredient = srv.repository.Store(form)
 
-		activity.UseActivity{}.SetReference(ingredient).SetNewProperty(constant.ACTION_CREATE).
+		srv.recordActivity(ingredient, constant.ACTION_CREATE, nil).
 			Save(fmt.Sprintf("Created new ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
@@ -62,7 +65,7 @@ func (srv *ingredientService) Create(form form2.IngredientForm) cake.Ingredient 
 func (srv *ingredientService) Update(form form2.IngredientForm, id uint) cake.Ingredient {
 	var ingredient cake.Ingredient
 
-	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewIngredientRepository(tx)
 
 		ingredient = srv.repository.FirstById(id)
@@ -70,9 +73,11 @@ func (srv *ingredientService) Update(form form2.IngredientForm, id uint) cake.In
 			error2.ErrXtremeIngredientGet("Ingredient not found")
 		}
 
+		act := srv.recordActivity(ingredient, constant.ACTION_UPDATE, nil)
+
 		ingredient = srv.repository.Update(ingredient, form)
 
-		activity.UseActivity{}.SetReference(ingredient).SetNewProperty(constant.ACTION_UPDATE).
+		srv.recordActivity(ingredient, constant.ACTION_UPDATE, &act).
 			Save(fmt.Sprintf("Updated ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
@@ -82,7 +87,7 @@ func (srv *ingredientService) Update(form form2.IngredientForm, id uint) cake.In
 }
 
 func (srv *ingredientService) Delete(id uint) error {
-	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewIngredientRepository(tx)
 		ingredient := srv.repository.FirstById(id)
 		if ingredient.ID == 0 {
@@ -91,10 +96,32 @@ func (srv *ingredientService) Delete(id uint) error {
 
 		srv.repository.Delete(ingredient)
 
-		activity.UseActivity{}.SetReference(ingredient).SetNewProperty(constant.ACTION_DELETE).
+		srv.recordActivity(ingredient, constant.ACTION_DELETE, nil).
 			Save(fmt.Sprintf("Deleted ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
 	})
 	return nil
+}
+
+func (srv *ingredientService) recordActivity(ingredient cake.Ingredient, action string, act *activity.UseActivity) activity.UseActivity {
+	var activ activity.UseActivity
+	if act == nil {
+		activ = activity.UseActivity{}.
+			SetConnection(srv.tx).
+			SetReference(&ingredient)
+
+		activ = activ.SetParser(&cakeparser.IngredientParser{Object: ingredient})
+		if action != constant.ACTION_CREATE {
+			activ = activ.SetOldProperty(action)
+		} else {
+			activ = activ.SetNewProperty(action)
+		}
+	} else {
+		activ = act.SetReference(&ingredient).
+			SetParser(&cakeparser.IngredientParser{Object: ingredient}).
+			SetNewProperty(action)
+	}
+
+	return activ
 }

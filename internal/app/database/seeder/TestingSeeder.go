@@ -1,22 +1,25 @@
 package seeder
 
 import (
-	"service/internal/pkg/config"
 	"service/internal/pkg/model"
+
+	"gorm.io/gorm"
 )
 
-type TestingSeeder struct{}
+type TestingSeeder struct {
+	Connection *gorm.DB
+}
 
 func (seed *TestingSeeder) Seed() {
 	testings := seed.setTestingData()
 	for _, testing := range testings {
 		var count int64
-		config.PgSQL.Model(&model.Testing{}).Where("name = ?", testing["name"]).Count(&count)
+		seed.Connection.Model(&model.Testing{}).Where("name = ?", testing["name"]).Count(&count)
 		if count > 0 {
 			continue
 		}
 
-		config.PgSQL.Create(&model.Testing{
+		seed.Connection.Create(&model.Testing{
 			Name: testing["name"].(string),
 		})
 	}

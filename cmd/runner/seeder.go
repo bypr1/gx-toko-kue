@@ -1,10 +1,11 @@
 package runner
 
 import (
-	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
-	"github.com/spf13/cobra"
 	"service/internal/app/database"
 	"service/internal/pkg/config"
+
+	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
+	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -19,7 +20,7 @@ func init() {
 			DBClose := config.InitDB()
 			defer DBClose()
 
-			database.Seeder()
+			database.Seeder(config.PgSQL)
 		},
 	})
 }

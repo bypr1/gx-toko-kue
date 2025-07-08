@@ -10,7 +10,7 @@ type Ingredient struct {
 	xtrememodel.BaseModel
 	Name        string  `gorm:"column:name;type:varchar(250);not null"`
 	Description string  `gorm:"column:description;type:text;default:null"`
-	UnitPrice   float64 `gorm:"column:unit_price;not null"`
+	UnitPrice   float64 `gorm:"column:unitPrice;not null"`
 	Unit        string  `gorm:"column:unit;type:varchar(50);not null"`
 }
 

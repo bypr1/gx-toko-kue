@@ -43,7 +43,7 @@ func (repo *ingredientRepository) SetTransaction(tx *gorm.DB) {
 func (repo *ingredientRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) cake.Ingredient {
 	var ingredient cake.Ingredient
 
-	query := config.PgSQL
+	query := config.CakeSQL
 	if repo.transaction != nil {
 		query = repo.transaction
 	}
@@ -63,8 +63,8 @@ func (repo *ingredientRepository) FirstById(id any, args ...func(query *gorm.DB)
 func (repo *ingredientRepository) Find(parameter url.Values) ([]cake.Ingredient, interface{}, error) {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := config.PgSQL.
-		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+	query := config.CakeSQL.
+		Where("`createdAt` BETWEEN ? AND ?", fromDate, toDate)
 
 	if search := parameter.Get("search"); len(search) > 3 {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
@@ -79,7 +79,7 @@ func (repo *ingredientRepository) Find(parameter url.Values) ([]cake.Ingredient,
 }
 
 func (repo *ingredientRepository) Store(form form2.IngredientForm) cake.Ingredient {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -100,7 +100,7 @@ func (repo *ingredientRepository) Store(form form2.IngredientForm) cake.Ingredie
 }
 
 func (repo *ingredientRepository) Update(ingredient cake.Ingredient, form form2.IngredientForm) cake.Ingredient {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -119,7 +119,7 @@ func (repo *ingredientRepository) Update(ingredient cake.Ingredient, form form2.
 }
 
 func (repo *ingredientRepository) Delete(ingredient cake.Ingredient) {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}

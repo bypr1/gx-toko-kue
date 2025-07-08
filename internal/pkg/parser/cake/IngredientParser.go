@@ -7,6 +7,22 @@ type IngredientParser struct {
 	Object cake.Ingredient
 }
 
+func (parser IngredientParser) CreateActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser IngredientParser) DeleteActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser IngredientParser) GeneralActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser IngredientParser) UpdateActivity(action string) interface{} {
+	return parser.First()
+}
+
 func (parser IngredientParser) Get() []interface{} {
 	var result []interface{}
 	for _, obj := range parser.Array {

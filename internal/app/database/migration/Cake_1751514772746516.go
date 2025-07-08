@@ -2,26 +2,28 @@ package migration
 
 import (
 	"os"
-	"service/internal/pkg/config"
 	"service/internal/pkg/model/cake"
 
 	xtremedb "github.com/globalxtreme/go-core/v2/database"
+	"gorm.io/gorm"
 )
 
-type Cake_1751514772746516 struct{}
+type Cake_1751514772746516 struct {
+	Connection *gorm.DB
+}
 
 func (Cake_1751514772746516) Reference() string {
 	return "Cake_1751514772746516"
 }
 
-func (Cake_1751514772746516) Tables() []xtremedb.Table {
+func (s Cake_1751514772746516) Tables() []xtremedb.Table {
 	owner := os.Getenv("DB_OWNER")
 
 	return []xtremedb.Table{
-		{Connection: config.PgSQL, CreateTable: cake.Ingredient{}, Owner: owner},
-		{Connection: config.PgSQL, CreateTable: cake.Cake{}, Owner: owner},
-		{Connection: config.PgSQL, CreateTable: cake.CakeRecipe{}, Owner: owner},
-		{Connection: config.PgSQL, CreateTable: cake.CakeCost{}, Owner: owner},
+		{Connection: s.Connection, CreateTable: cake.Ingredient{}, Owner: owner},
+		{Connection: s.Connection, CreateTable: cake.CakeRecipe{}, Owner: owner},
+		{Connection: s.Connection, CreateTable: cake.CakeCost{}, Owner: owner},
+		{Connection: s.Connection, CreateTable: cake.Cake{}, Owner: owner},
 	}
 }
 
