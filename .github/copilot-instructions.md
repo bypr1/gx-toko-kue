@@ -387,7 +387,7 @@ func (repo *testingRepository) Find(parameter url.Values) ([]model.Testing, inte
 	fromDate, toDate := core.SetDateRange(parameter)
 
 	query := config.PgSQL.Preload("Subs").
-		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+		Where("`createdAt` BETWEEN ? AND ?", fromDate, toDate)
 
 	if search := parameter.Get("search"); len(search) > 3 {
 		query = query.Where("name LIKE ?", "%"+search+"%")
@@ -600,24 +600,16 @@ func (srv *testingService) UploadByContent(form form2.TestingUploadContentForm) 
 }
 ```
 
-- Use `mail/` for email sending and templating
-- Use `excel/` for Excel file processing and generation
-- Use `pdf/` for PDF generation
+- (Optional, only append if requested) Use `mail/` for email sending and templating
+- (Optional, only append if requested) Use `excel/` for Excel file processing and generation
+- (Optional, only append if requested) Use `pdf/` for PDF generation
 
-
-
-### Route Handlers
+### API Route Handlers
 - When creating new handlers, *YOU MUST ALWAYS* use cli command: `go run ./cmd/main.go gen:handler <NAME> --type=<web/mobile> --resource`
 - Use `--type=web` for web API handlers, `--type=mobile` for mobile API handlers
 - Use `--resource` flag to generate resourceful handlers
 - Implement handlers in `internal/app/api/<type>/handler/`
 - Register created handlers in `internal/app/api/<type>/router.go`
-
-### API Handlers
-- Separate handlers for different API types (mobile, web, private)
-- Use form validation for request validation
-- Return consistent response formats
-- Handle errors using the error package
 
 ## Technology Stack
 

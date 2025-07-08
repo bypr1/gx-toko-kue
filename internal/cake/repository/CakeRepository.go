@@ -51,7 +51,7 @@ func (repo *cakeRepository) SetTransaction(tx *gorm.DB) {
 func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) cake.Cake {
 	var cakeModel cake.Cake
 
-	query := config.PgSQL
+	query := config.CakeSQL
 	if repo.transaction != nil {
 		query = repo.transaction
 	}
@@ -60,7 +60,7 @@ func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm
 		query = args[0](query)
 	}
 
-	err := query.First(&cakeModel, "id = ?", id).Error
+	err := query.Debug().Preload("Recipes.Ingredient").Preload("Costs").First(&cakeModel, "id = ?", id).Error
 	if err != nil {
 		error2.ErrXtremeCakeGet(err.Error())
 	}
@@ -71,8 +71,8 @@ func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm
 func (repo *cakeRepository) Find(parameter url.Values) ([]cake.Cake, interface{}, error) {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := config.PgSQL.Preload("Recipes").Preload("Costs").
-		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+	query := config.CakeSQL.Preload("Recipes.Ingredient").Preload("Costs").
+		Where("`createdAt` BETWEEN ? AND ?", fromDate, toDate)
 
 	if search := parameter.Get("search"); len(search) > 3 {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
@@ -87,7 +87,7 @@ func (repo *cakeRepository) Find(parameter url.Values) ([]cake.Cake, interface{}
 }
 
 func (repo *cakeRepository) Store(form form2.CakeForm) cake.Cake {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -110,7 +110,7 @@ func (repo *cakeRepository) Store(form form2.CakeForm) cake.Cake {
 }
 
 func (repo *cakeRepository) Update(cakeModel cake.Cake, form form2.CakeForm) cake.Cake {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -131,7 +131,7 @@ func (repo *cakeRepository) Update(cakeModel cake.Cake, form form2.CakeForm) cak
 }
 
 func (repo *cakeRepository) Delete(cakeModel cake.Cake) {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -143,7 +143,7 @@ func (repo *cakeRepository) Delete(cakeModel cake.Cake) {
 }
 
 func (repo *cakeRepository) AddRecipe(cakeModel cake.Cake, recipe form2.CakeCompIngredientForm) cake.CakeRecipe {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -174,19 +174,19 @@ func (repo *cakeRepository) UpdateRecipes(cakeModel cake.Cake, recipes []form2.C
 }
 
 func (repo *cakeRepository) DeleteRecipes(cakeModel cake.Cake) {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
 
-	err := db.Where("cake_id = ?", cakeModel.ID).Delete(&cake.CakeRecipe{}).Error
+	err := db.Where("`cakeId` = ?", cakeModel.ID).Delete(&cake.CakeRecipe{}).Error
 	if err != nil {
 		error2.ErrXtremeCakeRecipeDelete(err.Error())
 	}
 }
 
 func (repo *cakeRepository) AddCost(cakeModel cake.Cake, cost form2.CakeCompCostForm) cake.CakeCost {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
@@ -216,12 +216,12 @@ func (repo *cakeRepository) UpdateCosts(cakeModel cake.Cake, costs []form2.CakeC
 }
 
 func (repo *cakeRepository) DeleteCosts(cakeModel cake.Cake) {
-	db := config.PgSQL
+	db := config.CakeSQL
 	if repo.transaction != nil {
 		db = repo.transaction
 	}
 
-	err := db.Where("cake_id = ?", cakeModel.ID).Delete(&cake.CakeCost{}).Error
+	err := db.Where("`cakeId` = ?", cakeModel.ID).Delete(&cake.CakeCost{}).Error
 	if err != nil {
 		error2.ErrXtremeCakeCostDelete(err.Error())
 	}

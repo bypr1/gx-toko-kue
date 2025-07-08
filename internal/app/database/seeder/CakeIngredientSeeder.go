@@ -1,22 +1,25 @@
 package seeder
 
 import (
-	"service/internal/pkg/config"
 	"service/internal/pkg/model/cake"
+
+	"gorm.io/gorm"
 )
 
-type CakeIngredientSeeder struct{}
+type CakeIngredientSeeder struct {
+	Connection *gorm.DB
+}
 
 func (seed *CakeIngredientSeeder) Seed() {
 	ingredients := seed.setIngredientsData()
 	for _, ingredient := range ingredients {
 		var count int64
-		config.PgSQL.Model(&cake.Ingredient{}).Where("name = ?", ingredient["name"]).Count(&count)
+		seed.Connection.Model(&cake.Ingredient{}).Where("name = ?", ingredient["name"]).Count(&count)
 		if count > 0 {
 			continue
 		}
 
-		config.PgSQL.Create(&cake.Ingredient{
+		seed.Connection.Create(&cake.Ingredient{
 			Name:        ingredient["name"].(string),
 			Description: ingredient["description"].(string),
 			UnitPrice:   ingredient["unit_price"].(float64),

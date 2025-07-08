@@ -9,6 +9,22 @@ type CakeParser struct {
 	Object cake.Cake
 }
 
+func (parser CakeParser) CreateActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser CakeParser) DeleteActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser CakeParser) GeneralActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser CakeParser) UpdateActivity(action string) interface{} {
+	return parser.First()
+}
+
 func (parser CakeParser) Get() []interface{} {
 	var result []interface{}
 	for _, obj := range parser.Array {
