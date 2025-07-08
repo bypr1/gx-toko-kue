@@ -9,6 +9,7 @@ import (
 	error2 "service/internal/pkg/error"
 	form2 "service/internal/pkg/form/cake"
 	"service/internal/pkg/model/cake"
+	cakeparser "service/internal/pkg/parser/cake"
 	"service/internal/pkg/port"
 
 	"gorm.io/gorm"
@@ -25,7 +26,9 @@ type CakeService interface {
 }
 
 func NewCakeService() CakeService {
-	return &cakeService{}
+	return &cakeService{
+		tx: config.CakeSQL,
+	}
 }
 
 type cakeService struct {
@@ -46,7 +49,7 @@ func (srv *cakeService) SetActivityRepository(repo port.ActivityRepository) {
 func (srv *cakeService) Create(form form2.CakeForm) cake.Cake {
 	var cakeModel cake.Cake
 
-	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 
 		cakeModel = srv.repository.Store(form)
@@ -63,7 +66,8 @@ func (srv *cakeService) Create(form form2.CakeForm) cake.Cake {
 			cakeModel.Costs = append(cakeModel.Costs, cakeCost)
 		}
 
-		activity.UseActivity{}.SetReference(cakeModel).SetNewProperty(constant.ACTION_CREATE).
+		// Pass the transaction to recordActivity
+		srv.recordActivity(cakeModel, constant.ACTION_CREATE, nil).
 			Save(fmt.Sprintf("Created new cake: %s [%d]", cakeModel.Name, cakeModel.ID))
 
 		return nil
@@ -75,15 +79,15 @@ func (srv *cakeService) Create(form form2.CakeForm) cake.Cake {
 func (srv *cakeService) Update(form form2.CakeForm, id uint) cake.Cake {
 	var cakeModel cake.Cake
 
-	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 
-		cakeModel = srv.repository.FirstById(id, func(query *gorm.DB) *gorm.DB {
-			return query.Preload("Recipes").Preload("Costs")
-		})
+		cakeModel = srv.repository.FirstById(id)
 		if cakeModel.ID == 0 {
 			error2.ErrXtremeCakeGet("Cake not found")
 		}
+
+		act := srv.recordActivity(cakeModel, constant.ACTION_UPDATE, nil)
 
 		cakeModel = srv.repository.Update(cakeModel, form)
 
@@ -98,7 +102,7 @@ func (srv *cakeService) Update(form form2.CakeForm, id uint) cake.Cake {
 			return query.Preload("Recipes").Preload("Costs")
 		})
 
-		activity.UseActivity{}.SetReference(cakeModel).SetNewProperty(constant.ACTION_UPDATE).
+		srv.recordActivity(cakeModel, constant.ACTION_UPDATE, &act).
 			Save(fmt.Sprintf("Updated cake: %s [%d]", cakeModel.Name, cakeModel.ID))
 
 		return nil
@@ -108,7 +112,7 @@ func (srv *cakeService) Update(form form2.CakeForm, id uint) cake.Cake {
 }
 
 func (srv *cakeService) Delete(id uint) error {
-	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 		cakeModel := srv.repository.FirstById(id, func(query *gorm.DB) *gorm.DB {
 			return query.Preload("Recipes").Preload("Costs")
@@ -124,7 +128,7 @@ func (srv *cakeService) Delete(id uint) error {
 		// Delete the cake
 		srv.repository.Delete(cakeModel)
 
-		activity.UseActivity{}.SetReference(cakeModel).SetNewProperty(constant.ACTION_DELETE).
+		srv.recordActivity(cakeModel, constant.ACTION_DELETE, nil).
 			Save(fmt.Sprintf("Deleted cake: %s [%d]", cakeModel.Name, cakeModel.ID))
 
 		return nil
@@ -148,4 +152,26 @@ func (srv *cakeService) CalculateCakeCost(cakeModel cake.Cake) float64 {
 	}
 
 	return totalCost
+}
+
+func (srv *cakeService) recordActivity(cake cake.Cake, action string, act *activity.UseActivity) activity.UseActivity {
+	var activ activity.UseActivity
+	if act == nil {
+		activ = activity.UseActivity{}.
+			SetConnection(srv.tx).
+			SetReference(&cake)
+
+		activ = activ.SetParser(&cakeparser.CakeParser{Object: cake})
+		if action != constant.ACTION_CREATE {
+			activ = activ.SetOldProperty(action)
+		} else {
+			activ = activ.SetNewProperty(action)
+		}
+	} else {
+		activ = act.SetReference(&cake).
+			SetParser(&cakeparser.CakeParser{Object: cake}).
+			SetNewProperty(action)
+	}
+
+	return activ
 }

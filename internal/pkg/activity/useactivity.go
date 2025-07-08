@@ -6,6 +6,8 @@ import (
 	"service/internal/pkg/core"
 	error2 "service/internal/pkg/error"
 	"service/internal/pkg/model"
+
+	"gorm.io/gorm"
 )
 
 type ActivityModelInterface interface {
@@ -27,6 +29,7 @@ type UseActivity struct {
 	Property      property `gorm:"-"`
 	Parser        core.BaseActivityPropertyParserInterface
 	//Employee    data.EmployeeIdentifierData    `gorm:"-"` // TODO: Re-enable this code after installing github.com/globalxtreme/go-identifier module (If you use GX Identifier for authorization)
+	Connection *gorm.DB `gorm:"-"`
 }
 
 func (aa UseActivity) SetReference(md ActivityModelInterface) UseActivity {
@@ -44,6 +47,15 @@ func (aa UseActivity) SetSubFeature(subFeature string) UseActivity {
 
 func (aa UseActivity) SetParser(Parser core.BaseActivityPropertyParserInterface) UseActivity {
 	aa.Parser = Parser
+
+	return aa
+}
+
+func (aa UseActivity) SetConnection(conn *gorm.DB) UseActivity {
+	aa.Connection = conn
+	if aa.Connection == nil {
+		aa.Connection = config.PgSQL
+	}
 
 	return aa
 }
@@ -84,7 +96,7 @@ func (aa UseActivity) Save(description string) error {
 	//activity.CausedBy = aa.Employee.ID
 	//activity.CausedByName = aa.Employee.FullName
 
-	err := config.PgSQL.Create(&activity).Error
+	err := aa.Connection.Create(&activity).Error
 	if err != nil {
 		error2.ErrXtremeActivitySave(err.Error())
 	}
