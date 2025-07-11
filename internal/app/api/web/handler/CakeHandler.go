@@ -2,15 +2,14 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
-	form2 "service/internal/pkg/form/cake"
+	"service/internal/pkg/form"
+	"service/internal/pkg/model"
 	cakeparser "service/internal/pkg/parser"
 
 	"github.com/gorilla/mux"
-	"gorm.io/gorm"
 
 	xtremeres "github.com/globalxtreme/go-core/v2/response"
 )
@@ -28,11 +27,12 @@ func (CakeHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (CakeHandler) Detail(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-
 	repo := repository.NewCakeRepository()
-	cake := repo.FirstById(id)
+
+	var cake model.Cake
+	if id := mux.Vars(r)["id"]; id != "" {
+		cake = repo.FirstById(id)
+	}
 
 	psr := cakeparser.CakeParser{Object: cake}
 	res := xtremeres.Response{Object: psr.Brief()}
@@ -40,12 +40,11 @@ func (CakeHandler) Detail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (CakeHandler) Create(w http.ResponseWriter, r *http.Request) {
-	form := form2.CakeForm{}
+	form := form.CakeForm{}
 	form.APIParse(r)
 	form.Validate()
 
 	srv := service.NewCakeService()
-
 	cake := srv.Create(form)
 
 	psr := cakeparser.CakeParser{Object: cake}
@@ -54,16 +53,16 @@ func (CakeHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-
-	form := form2.CakeForm{}
+	form := form.CakeForm{}
 	form.APIParse(r)
 	form.Validate()
 
 	srv := service.NewCakeService()
 
-	cake := srv.Update(form, uint(id))
+	var cake model.Cake
+	if id := mux.Vars(r)["id"]; id != "" {
+		cake = srv.Update(form, id)
+	}
 
 	psr := cakeparser.CakeParser{Object: cake}
 	res := xtremeres.Response{Object: psr.Brief()}
@@ -71,37 +70,12 @@ func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (CakeHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-
 	srv := service.NewCakeService()
 
-	err := srv.Delete(uint(id))
-	if err != nil {
-		xtremeres.Error(http.StatusInternalServerError, "Unable to delete cake", err.Error(), false, nil)
-		return
+	if id := mux.Vars(r)["id"]; id != "" {
+		srv.Delete(id)
 	}
 
 	res := xtremeres.Response{Object: map[string]interface{}{"message": "Cake deleted successfully"}}
-	res.Success(w)
-}
-
-func (CakeHandler) CalculateCost(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-
-	repo := repository.NewCakeRepository()
-	cake := repo.FirstById(uint(id), func(query *gorm.DB) *gorm.DB {
-		return query.Preload("Recipes").Preload("Recipes.Ingredient").Preload("Costs")
-	})
-
-	srv := service.NewCakeService()
-	totalCost := srv.CalculateCakeCost(cake)
-
-	psr := cakeparser.CakeCostCalculationParser{
-		Cake:      cake,
-		TotalCost: totalCost,
-	}
-	res := xtremeres.Response{Object: psr.First()}
 	res.Success(w)
 }

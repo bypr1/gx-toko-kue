@@ -10,7 +10,6 @@ func Register(router *mux.Router) {
 	activityRouter(router)
 	testingRouter(router)
 	cakeRouter(router)
-	ingredientRouter(router)
 }
 
 func activityRouter(router *mux.Router) {
@@ -26,20 +25,20 @@ func testingRouter(router *mux.Router) {
 }
 
 func cakeRouter(router *mux.Router) {
-	var cakeHandler handler.CakeHandler
-	router.HandleFunc("/cakes", cakeHandler.Get).Methods("GET")
-	router.HandleFunc("/cakes", cakeHandler.Create).Methods("POST")
-	router.HandleFunc("/cakes/{id}", cakeHandler.Detail).Methods("GET")
-	router.HandleFunc("/cakes/{id}", cakeHandler.Update).Methods("PUT")
-	router.HandleFunc("/cakes/{id}", cakeHandler.Delete).Methods("DELETE")
-	router.HandleFunc("/cakes/{id}/calculate-cost", cakeHandler.CalculateCost).Methods("GET")
-}
+	router = router.PathPrefix("/cakes").Subrouter()
 
-func ingredientRouter(router *mux.Router) {
+	var cakeHandler handler.CakeHandler
+	router.HandleFunc("", cakeHandler.Get).Methods("GET")
+	router.HandleFunc("", cakeHandler.Create).Methods("POST")
+	router.HandleFunc("/{id}", cakeHandler.Detail).Methods("GET")
+	router.HandleFunc("/{id}", cakeHandler.Update).Methods("PUT")
+	router.HandleFunc("/{id}", cakeHandler.Delete).Methods("DELETE")
+
 	var ingredientHandler handler.IngredientHandler
-	router.HandleFunc("/ingredients", ingredientHandler.Get).Methods("GET")
-	router.HandleFunc("/ingredients", ingredientHandler.Create).Methods("POST")
-	router.HandleFunc("/ingredients/{id}", ingredientHandler.Detail).Methods("GET")
-	router.HandleFunc("/ingredients/{id}", ingredientHandler.Update).Methods("PUT")
-	router.HandleFunc("/ingredients/{id}", ingredientHandler.Delete).Methods("DELETE")
+	router.HandleFunc("/components/ingredients", ingredientHandler.Get).Methods("GET")
+	router.HandleFunc("/components/ingredients", ingredientHandler.Create).Methods("POST")
+	router.HandleFunc("/components/ingredients/{id}", ingredientHandler.Detail).Methods("GET")
+	router.HandleFunc("/components/ingredients/{id}", ingredientHandler.Update).Methods("PUT")
+	router.HandleFunc("/components/ingredients/{id}", ingredientHandler.Delete).Methods("DELETE")
+
 }
