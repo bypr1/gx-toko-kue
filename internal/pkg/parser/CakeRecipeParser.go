@@ -1,10 +1,10 @@
-package cakeparser
+package parser
 
-import "service/internal/pkg/model/cake"
+import "service/internal/pkg/model"
 
 type CakeRecipeParser struct {
-	Array  []cake.CakeRecipe
-	Object cake.CakeRecipe
+	Array  []model.CakeRecipe
+	Object model.CakeRecipe
 }
 
 func (parser CakeRecipeParser) Get() []interface{} {

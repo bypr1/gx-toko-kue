@@ -8,7 +8,7 @@ import (
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
 	form2 "service/internal/pkg/form/cake"
-	cakeparser "service/internal/pkg/parser/cake"
+	cakeparser "service/internal/pkg/parser"
 
 	"github.com/gorilla/mux"
 

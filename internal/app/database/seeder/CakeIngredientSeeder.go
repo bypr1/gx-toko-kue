@@ -1,7 +1,7 @@
 package seeder
 
 import (
-	"service/internal/pkg/model/cake"
+	"service/internal/pkg/model"
 
 	"gorm.io/gorm"
 )
@@ -14,12 +14,12 @@ func (seed *CakeIngredientSeeder) Seed() {
 	ingredients := seed.setIngredientsData()
 	for _, ingredient := range ingredients {
 		var count int64
-		seed.Connection.Model(&cake.Ingredient{}).Where("name = ?", ingredient["name"]).Count(&count)
+		seed.Connection.Model(&model.Ingredient{}).Where("name = ?", ingredient["name"]).Count(&count)
 		if count > 0 {
 			continue
 		}
 
-		seed.Connection.Create(&cake.Ingredient{
+		seed.Connection.Create(&model.Ingredient{
 			Name:        ingredient["name"].(string),
 			Description: ingredient["description"].(string),
 			UnitPrice:   ingredient["unit_price"].(float64),

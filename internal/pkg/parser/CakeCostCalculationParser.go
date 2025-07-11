@@ -1,11 +1,9 @@
-package cakeparser
+package parser
 
-import (
-	"service/internal/pkg/model/cake"
-)
+import "service/internal/pkg/model"
 
 type CakeCostCalculationParser struct {
-	Cake      cake.Cake
+	Cake      model.Cake
 	TotalCost float64
 }
 
