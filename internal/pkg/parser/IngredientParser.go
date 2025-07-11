@@ -1,10 +1,10 @@
-package cakeparser
+package parser
 
-import "service/internal/pkg/model/cake"
+import "service/internal/pkg/model"
 
 type IngredientParser struct {
-	Array  []cake.Ingredient
-	Object cake.Ingredient
+	Array  []model.Ingredient
+	Object model.Ingredient
 }
 
 func (parser IngredientParser) CreateActivity(action string) interface{} {

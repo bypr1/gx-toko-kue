@@ -8,8 +8,8 @@ import (
 	"service/internal/pkg/constant"
 	error2 "service/internal/pkg/error"
 	form2 "service/internal/pkg/form/cake"
-	"service/internal/pkg/model/cake"
-	cakeparser "service/internal/pkg/parser/cake"
+	"service/internal/pkg/model"
+	cakeparser "service/internal/pkg/parser"
 	"service/internal/pkg/port"
 
 	"gorm.io/gorm"
@@ -19,14 +19,14 @@ type IngredientService interface {
 	SetTransaction(tx *gorm.DB)
 	SetActivityRepository(repo port.ActivityRepository)
 
-	Create(form form2.IngredientForm) cake.Ingredient
-	Update(form form2.IngredientForm, id uint) cake.Ingredient
+	Create(form form2.IngredientForm) model.Ingredient
+	Update(form form2.IngredientForm, id uint) model.Ingredient
 	Delete(id uint) error
 }
 
 func NewIngredientService() IngredientService {
 	return &ingredientService{
-		tx: config.CakeSQL,
+		tx: config.PgSQL,
 	}
 }
 
@@ -45,8 +45,8 @@ func (srv *ingredientService) SetActivityRepository(repo port.ActivityRepository
 	srv.activityRepository = repo
 }
 
-func (srv *ingredientService) Create(form form2.IngredientForm) cake.Ingredient {
-	var ingredient cake.Ingredient
+func (srv *ingredientService) Create(form form2.IngredientForm) model.Ingredient {
+	var ingredient model.Ingredient
 
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewIngredientRepository(tx)
@@ -62,8 +62,8 @@ func (srv *ingredientService) Create(form form2.IngredientForm) cake.Ingredient 
 	return ingredient
 }
 
-func (srv *ingredientService) Update(form form2.IngredientForm, id uint) cake.Ingredient {
-	var ingredient cake.Ingredient
+func (srv *ingredientService) Update(form form2.IngredientForm, id uint) model.Ingredient {
+	var ingredient model.Ingredient
 
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewIngredientRepository(tx)
@@ -104,7 +104,7 @@ func (srv *ingredientService) Delete(id uint) error {
 	return nil
 }
 
-func (srv *ingredientService) recordActivity(ingredient cake.Ingredient, action string, act *activity.UseActivity) activity.UseActivity {
+func (srv *ingredientService) recordActivity(ingredient model.Ingredient, action string, act *activity.UseActivity) activity.UseActivity {
 	var activ activity.UseActivity
 	if act == nil {
 		activ = activity.UseActivity{}.

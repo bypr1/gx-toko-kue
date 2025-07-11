@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	activityRepo "service/internal/activity/repository"
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
 	form2 "service/internal/pkg/form/cake"
-	cakeparser "service/internal/pkg/parser/cake"
+	cakeparser "service/internal/pkg/parser"
 
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -20,11 +19,11 @@ type CakeHandler struct{}
 
 func (CakeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	repo := repository.NewCakeRepository()
-	cakes, pagination, _ := repo.Find(r.URL.Query())
+	cakes, pagination, _ := repo.Paginate(r.URL.Query())
 
 	psr := cakeparser.CakeParser{Array: cakes}
 
-	res := xtremeres.Response{Array: psr.Get(), Pagination: &pagination}
+	res := xtremeres.Response{Array: psr.Briefs(), Pagination: &pagination}
 	res.Success(w)
 }
 
@@ -36,7 +35,7 @@ func (CakeHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	cake := repo.FirstById(id)
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.First()}
+	res := xtremeres.Response{Object: psr.Brief()}
 	res.Success(w)
 }
 
@@ -46,12 +45,11 @@ func (CakeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	form.Validate()
 
 	srv := service.NewCakeService()
-	srv.SetActivityRepository(activityRepo.NewActivityRepository())
 
 	cake := srv.Create(form)
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.First()}
+	res := xtremeres.Response{Object: psr.Brief()}
 	res.Success(w)
 }
 
@@ -64,12 +62,11 @@ func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	form.Validate()
 
 	srv := service.NewCakeService()
-	srv.SetActivityRepository(activityRepo.NewActivityRepository())
 
 	cake := srv.Update(form, uint(id))
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.First()}
+	res := xtremeres.Response{Object: psr.Brief()}
 	res.Success(w)
 }
 
@@ -78,7 +75,6 @@ func (CakeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseUint(vars["id"], 10, 32)
 
 	srv := service.NewCakeService()
-	srv.SetActivityRepository(activityRepo.NewActivityRepository())
 
 	err := srv.Delete(uint(id))
 	if err != nil {
