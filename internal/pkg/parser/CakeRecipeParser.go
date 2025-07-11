@@ -3,8 +3,8 @@ package parser
 import "service/internal/pkg/model"
 
 type CakeRecipeParser struct {
-	Array  []model.CakeRecipe
-	Object model.CakeRecipe
+	Array  []model.CakeRecipeIngredient
+	Object model.CakeRecipeIngredient
 }
 
 func (parser CakeRecipeParser) Get() []interface{} {
@@ -27,5 +27,16 @@ func (parser CakeRecipeParser) First() interface{} {
 			"name": recipe.Ingredient.Name,
 			"unit": recipe.Ingredient.Unit,
 		},
+	}
+}
+
+func (parser CakeRecipeParser) FirstWithoutIngredient() interface{} {
+	recipe := parser.Object
+	return map[string]interface{}{
+		"id":           recipe.ID,
+		"cakeId":       recipe.CakeID,
+		"ingredientId": recipe.IngredientID,
+		"amount":       recipe.Amount,
+		"unit":         recipe.Unit,
 	}
 }

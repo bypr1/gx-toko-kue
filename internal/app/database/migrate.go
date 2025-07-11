@@ -11,5 +11,6 @@ func Migrations(conn *gorm.DB) []xtremedb.Migration {
 	return []xtremedb.Migration{
 		&migration.Activity_1726651211960757{Connection: conn},
 		&migration.Cake_1751514772746516{Connection: conn},
+		&migration.CakeTableRename_1752237331222387{},
 	}
 }

@@ -12,6 +12,169 @@
 			"name": "Cakes",
 			"item": [
 				{
+					"name": "Ingredients",
+					"item": [
+						{
+							"name": "Get All Ingredients",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/cakes/components/ingredients?page=1&limit=10&search=",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										"components",
+										"ingredients"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1",
+											"description": "Page number for pagination"
+										},
+										{
+											"key": "limit",
+											"value": "10",
+											"description": "Number of items per page"
+										},
+										{
+											"key": "search",
+											"value": "",
+											"description": "Search term for filtering ingredients"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get Ingredient Detail",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/cakes/components/ingredients/{{ingredient_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										"components",
+										"ingredients",
+										"{{ingredient_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Create Ingredient",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Chocolate Mint\",\n  \"description\": \"High quality cocoa powder for baking\",\n  \"unitPrice\": 50000,\n  \"unit\": \"kg\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/cakes/components/ingredients",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										"components",
+										"ingredients"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Ingredient",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"Black Powder\",\n  \"description\": \"Premium quality cocoa powder for professional baking\",\n  \"unitPrice\": 55000,\n  \"unit\": \"kg\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/cakes/components/ingredients/{{ingredient_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										"components",
+										"ingredients",
+										"{{ingredient_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Ingredient",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/cakes/components/ingredients/{{ingredient_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										"components",
+										"ingredients",
+										"{{ingredient_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Get All Cakes",
 					"request": {
 						"method": "GET",
@@ -92,7 +255,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Chocolate Cake\",\n  \"description\": \"Delicious chocolate cake with rich flavor\",\n  \"margin\": 0.3,\n  \"sell_price\": 150000,\n  \"unit\": \"piece\",\n  \"stock\": 10,\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"amount\": 200,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredient_id\": 2,\n      \"amount\": 100,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 5000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 10000\n    }\n  ]\n}",
+							"raw": "{\n  \"name\": \"Chocolate Mint Cake\",\n  \"description\": \"Delicious chocolate cake with rich flavor\",\n  \"margin\": 0.3,\n  \"unit\": \"piece\",\n  \"stock\": 10,\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"amount\": 200,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredient_id\": 2,\n      \"amount\": 100,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 5000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 10000\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -123,7 +286,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Chocolate Cake\",\n  \"description\": \"Updated description for chocolate cake\",\n  \"margin\": 0.35,\n  \"sell_price\": 160000,\n  \"unit\": \"piece\",\n  \"stock\": 15,\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"amount\": 250,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredient_id\": 2,\n      \"amount\": 120,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 6000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 12000\n    }\n  ]\n}",
+							"raw": "{\n  \"name\": \"Updated Chocolate Mint Cake\",\n  \"description\": \"Updated description for chocolate cake\",\n  \"margin\": 0.35,\n  \"unit\": \"piece\",\n  \"stock\": 15,\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"amount\": 250,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredient_id\": 2,\n      \"amount\": 120,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 6000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 15000\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -174,211 +337,6 @@
 									"key": "cake_id",
 									"value": "1",
 									"description": "Cake ID to delete"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Calculate Cake Cost",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/cakes/{{cake_id}}/calculate-cost",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"cakes",
-								"{{cake_id}}",
-								"calculate-cost"
-							],
-							"variable": [
-								{
-									"key": "cake_id",
-									"value": "1",
-									"description": "Cake ID for cost calculation"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "Ingredients",
-			"item": [
-				{
-					"name": "Get All Ingredients",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/ingredients?page=1&limit=10&search=",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"ingredients"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Page number for pagination"
-								},
-								{
-									"key": "limit",
-									"value": "10",
-									"description": "Number of items per page"
-								},
-								{
-									"key": "search",
-									"value": "",
-									"description": "Search term for filtering ingredients"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get Ingredient Detail",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/ingredients/{{ingredient_id}}",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"ingredients",
-								"{{ingredient_id}}"
-							],
-							"variable": [
-								{
-									"key": "ingredient_id",
-									"value": "1",
-									"description": "Ingredient ID"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Create Ingredient",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Chocolate Powder\",\n  \"description\": \"High quality cocoa powder for baking\",\n  \"unit_price\": 50000,\n  \"unit\": \"kg\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/ingredients",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"ingredients"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Update Ingredient",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Premium Chocolate Powder\",\n  \"description\": \"Premium quality cocoa powder for professional baking\",\n  \"unit_price\": 55000,\n  \"unit\": \"kg\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/ingredients/{{ingredient_id}}",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"ingredients",
-								"{{ingredient_id}}"
-							],
-							"variable": [
-								{
-									"key": "ingredient_id",
-									"value": "1",
-									"description": "Ingredient ID to update"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Ingredient",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/ingredients/{{ingredient_id}}",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"ingredients",
-								"{{ingredient_id}}"
-							],
-							"variable": [
-								{
-									"key": "ingredient_id",
-									"value": "1",
-									"description": "Ingredient ID to delete"
 								}
 							]
 						}

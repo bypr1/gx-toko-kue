@@ -4,9 +4,9 @@ import (
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"
 )
 
-// Ingredient stores ingredient information
+// CakeComponentIngredient stores ingredient information
 // Table: cake_ingredients
-type Ingredient struct {
+type CakeComponentIngredient struct {
 	xtrememodel.BaseModel
 	Name        string  `gorm:"column:name;type:varchar(250);not null"`
 	Description string  `gorm:"column:description;type:text;default:null"`
@@ -14,10 +14,10 @@ type Ingredient struct {
 	Unit        string  `gorm:"column:unit;type:varchar(50);not null"`
 }
 
-func (Ingredient) TableName() string {
-	return "cake_ingredients"
+func (CakeComponentIngredient) TableName() string {
+	return "cake_component_ingredients"
 }
 
-func (i Ingredient) SetReference() uint {
+func (i CakeComponentIngredient) SetReference() uint {
 	return i.BaseModel.ID
 }

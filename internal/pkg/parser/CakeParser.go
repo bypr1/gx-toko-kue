@@ -37,7 +37,7 @@ func (parser CakeParser) Brief() interface{} {
 	cakeObj := parser.Object
 	var recipes []interface{}
 	for _, recipe := range cakeObj.Recipes {
-		recipes = append(recipes, CakeRecipeParser{Object: recipe}.First())
+		recipes = append(recipes, CakeRecipeParser{Object: recipe}.FirstWithoutIngredient())
 	}
 	var costs []interface{}
 	for _, cost := range cakeObj.Costs {

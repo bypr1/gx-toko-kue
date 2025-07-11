@@ -2,12 +2,11 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
-	activityRepo "service/internal/activity/repository"
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
-	form2 "service/internal/pkg/form/cake"
+	"service/internal/pkg/form"
+	"service/internal/pkg/model"
 	cakeparser "service/internal/pkg/parser"
 
 	"github.com/gorilla/mux"
@@ -18,8 +17,8 @@ import (
 type IngredientHandler struct{}
 
 func (IngredientHandler) Get(w http.ResponseWriter, r *http.Request) {
-	repo := repository.NewIngredientRepository()
-	ingredients, pagination, _ := repo.Find(r.URL.Query())
+	repo := repository.NewCakeComponentIngredientRepository()
+	ingredients, pagination, _ := repo.Paginate(r.URL.Query())
 
 	psr := cakeparser.IngredientParser{Array: ingredients}
 
@@ -28,11 +27,12 @@ func (IngredientHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (IngredientHandler) Detail(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
+	repo := repository.NewCakeComponentIngredientRepository()
 
-	repo := repository.NewIngredientRepository()
-	ingredient := repo.FirstById(uint(id))
+	var ingredient model.CakeComponentIngredient
+	if id := mux.Vars(r)["id"]; id != "" {
+		ingredient = repo.FirstById(id)
+	}
 
 	psr := cakeparser.IngredientParser{Object: ingredient}
 	res := xtremeres.Response{Object: psr.First()}
@@ -40,13 +40,11 @@ func (IngredientHandler) Detail(w http.ResponseWriter, r *http.Request) {
 }
 
 func (IngredientHandler) Create(w http.ResponseWriter, r *http.Request) {
-	form := form2.IngredientForm{}
+	form := form.CakeComponentIngredientForm{}
 	form.APIParse(r)
 	form.Validate()
 
 	srv := service.NewIngredientService()
-	srv.SetActivityRepository(activityRepo.NewActivityRepository())
-
 	ingredient := srv.Create(form)
 
 	psr := cakeparser.IngredientParser{Object: ingredient}
@@ -55,17 +53,15 @@ func (IngredientHandler) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (IngredientHandler) Update(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-
-	form := form2.IngredientForm{}
+	form := form.CakeComponentIngredientForm{}
 	form.APIParse(r)
 	form.Validate()
 
 	srv := service.NewIngredientService()
-	srv.SetActivityRepository(activityRepo.NewActivityRepository())
-
-	ingredient := srv.Update(form, uint(id))
+	var ingredient model.CakeComponentIngredient
+	if id := mux.Vars(r)["id"]; id != "" {
+		ingredient = srv.Update(form, id)
+	}
 
 	psr := cakeparser.IngredientParser{Object: ingredient}
 	res := xtremeres.Response{Object: psr.First()}
@@ -73,16 +69,10 @@ func (IngredientHandler) Update(w http.ResponseWriter, r *http.Request) {
 }
 
 func (IngredientHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id, _ := strconv.ParseUint(vars["id"], 10, 32)
-
 	srv := service.NewIngredientService()
-	srv.SetActivityRepository(activityRepo.NewActivityRepository())
 
-	err := srv.Delete(uint(id))
-	if err != nil {
-		xtremeres.Error(http.StatusInternalServerError, "Unable to delete ingredient", err.Error(), false, nil)
-		return
+	if id := mux.Vars(r)["id"]; id != "" {
+		srv.Delete(id)
 	}
 
 	res := xtremeres.Response{Object: map[string]interface{}{"message": "Ingredient deleted successfully"}}

@@ -11,7 +11,6 @@ type CakeForm struct {
 	Name        string                   `json:"name" validate:"required,max=250"`
 	Description string                   `json:"description"`
 	Margin      float64                  `json:"margin" validate:"required,gte=0"`
-	SellPrice   float64                  `json:"sell_price" validate:"required,gte=0"`
 	Unit        string                   `json:"unit" validate:"max=50"`
 	Stock       int                      `json:"stock" validate:"gte=0"`
 	Ingredients []CakeCompIngredientForm `json:"ingredients" validate:"required,dive"`

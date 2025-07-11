@@ -1,32 +1,33 @@
 package activity
 
 import (
-	"service/internal/pkg/config"
 	"service/internal/pkg/constant"
 	"service/internal/pkg/core"
+
+	"gorm.io/gorm"
 )
 
-func InitCreate(reference ActivityModelInterface) UseActivity {
+func InitCreate(reference ActivityModelInterface, conn *gorm.DB) UseActivity {
 	return UseActivity{
-		Connection:    config.PgSQL,
+		Connection:    conn,
 		ReferenceID:   reference.SetReference(),
 		ReferenceType: reference.TableName(),
 		Action:        constant.ACTION_CREATE,
 	}
 }
 
-func InitUpdate(reference ActivityModelInterface) UseActivity {
+func InitUpdate(reference ActivityModelInterface, conn *gorm.DB) UseActivity {
 	return UseActivity{
-		Connection:    config.PgSQL,
+		Connection:    conn,
 		ReferenceID:   reference.SetReference(),
 		ReferenceType: reference.TableName(),
 		Action:        constant.ACTION_UPDATE,
 	}
 }
 
-func InitDelete(reference ActivityModelInterface) UseActivity {
+func InitDelete(reference ActivityModelInterface, conn *gorm.DB) UseActivity {
 	return UseActivity{
-		Connection:    config.PgSQL,
+		Connection:    conn,
 		ReferenceID:   reference.SetReference(),
 		ReferenceType: reference.TableName(),
 		Action:        constant.ACTION_DELETE,
