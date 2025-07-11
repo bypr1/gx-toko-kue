@@ -1,4 +1,4 @@
-package cake
+package model
 
 import (
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"

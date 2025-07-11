@@ -1,10 +1,10 @@
-package cakeparser
+package parser
 
-import "service/internal/pkg/model/cake"
+import "service/internal/pkg/model"
 
 type CakeCostParser struct {
-	Array  []cake.CakeCost
-	Object cake.CakeCost
+	Array  []model.CakeCost
+	Object model.CakeCost
 }
 
 func (parser CakeCostParser) Get() []interface{} {

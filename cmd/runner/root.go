@@ -2,15 +2,16 @@ package runner
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+	"service/internal/app/api"
+	"service/internal/pkg/config"
+
 	xtremecore "github.com/globalxtreme/go-core/v2"
 	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"github.com/spf13/cobra"
-	"net/http"
-	"os"
-	"service/internal/app/api"
-	"service/internal/pkg/config"
 )
 
 var rootCmd = &cobra.Command{
@@ -32,7 +33,7 @@ var rootCmd = &cobra.Command{
 		// TODO: Aktifkan saat up ke operational
 		//xtremedb.Migrate(config.PgSQL, database.Migrations())
 
-		// TODO: Abaikan dulu
+		// TODO: Abaikan dulu karena belum ada RabbitMQ dan GRPC
 		//rabbitMQClose := config.InitRabbitMQ()
 		//defer rabbitMQClose()
 
@@ -61,6 +62,5 @@ func Execute() {
 }
 
 func init() {
-	// TODO: awalnya dev mode = false
 	rootCmd.PersistentFlags().BoolVar(&xtremepkg.DevMode, "dev", false, "Set for development mode")
 }

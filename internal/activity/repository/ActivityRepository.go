@@ -1,12 +1,13 @@
 package repository
 
 import (
-	xtrememodel "github.com/globalxtreme/go-core/v2/model"
-	"gorm.io/gorm"
 	"net/url"
 	"service/internal/pkg/config"
 	"service/internal/pkg/core"
 	"service/internal/pkg/model"
+
+	xtrememodel "github.com/globalxtreme/go-core/v2/model"
+	"gorm.io/gorm"
 )
 
 /** --- INTERFACE --- */
@@ -40,7 +41,7 @@ func (repo activityRepository) Find(parameters url.Values) ([]model.Activity, in
 func (repo activityRepository) filterByParam(parameters url.Values) *gorm.DB {
 	fromDate, toDate := core.SetDateRange(parameters)
 
-	query := config.PgSQL.Where(`"createdAt" BETWEEN ? AND ?`, fromDate, toDate)
+	query := config.PgSQL.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if feature := parameters.Get("feature"); len(feature) > 0 {
 		query = query.Where("feature = ?", feature)
@@ -52,7 +53,7 @@ func (repo activityRepository) filterByParam(parameters url.Values) *gorm.DB {
 
 	if searchReq := parameters.Get("search"); len(searchReq) > 3 {
 		searchVal := "%" + searchReq + "%"
-		query = query.Where(`description LIKE ? OR "subFeature" LIKE ?`, searchVal, searchVal)
+		query = query.Where("\"description\" LIKE ? OR \"subFeature\" LIKE ?", searchVal, searchVal)
 	}
 
 	return query

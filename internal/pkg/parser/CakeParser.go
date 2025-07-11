@@ -1,39 +1,39 @@
-package cakeparser
+package parser
 
 import (
-	"service/internal/pkg/model/cake"
+	"service/internal/pkg/model"
 )
 
 type CakeParser struct {
-	Array  []cake.Cake
-	Object cake.Cake
+	Array  []model.Cake
+	Object model.Cake
 }
 
 func (parser CakeParser) CreateActivity(action string) interface{} {
-	return parser.First()
+	return parser.Brief()
 }
 
 func (parser CakeParser) DeleteActivity(action string) interface{} {
-	return parser.First()
+	return parser.Brief()
 }
 
 func (parser CakeParser) GeneralActivity(action string) interface{} {
-	return parser.First()
+	return parser.Brief()
 }
 
 func (parser CakeParser) UpdateActivity(action string) interface{} {
-	return parser.First()
+	return parser.Brief()
 }
 
-func (parser CakeParser) Get() []interface{} {
+func (parser CakeParser) Briefs() []interface{} {
 	var result []interface{}
 	for _, obj := range parser.Array {
-		result = append(result, CakeParser{Object: obj}.First())
+		result = append(result, CakeParser{Object: obj}.Brief())
 	}
 	return result
 }
 
-func (parser CakeParser) First() interface{} {
+func (parser CakeParser) Brief() interface{} {
 	cakeObj := parser.Object
 	var recipes []interface{}
 	for _, recipe := range cakeObj.Recipes {
