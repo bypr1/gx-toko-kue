@@ -14,12 +14,12 @@ func (seed *CakeIngredientSeeder) Seed() {
 	ingredients := seed.setIngredientsData()
 	for _, ingredient := range ingredients {
 		var count int64
-		seed.Connection.Model(&model.Ingredient{}).Where("name = ?", ingredient["name"]).Count(&count)
+		seed.Connection.Model(&model.CakeComponentIngredient{}).Where("name = ?", ingredient["name"]).Count(&count)
 		if count > 0 {
 			continue
 		}
 
-		seed.Connection.Create(&model.Ingredient{
+		seed.Connection.Create(&model.CakeComponentIngredient{
 			Name:        ingredient["name"].(string),
 			Description: ingredient["description"].(string),
 			UnitPrice:   ingredient["unit_price"].(float64),

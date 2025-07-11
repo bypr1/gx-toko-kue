@@ -3,8 +3,8 @@ package parser
 import "service/internal/pkg/model"
 
 type IngredientParser struct {
-	Array  []model.Ingredient
-	Object model.Ingredient
+	Array  []model.CakeComponentIngredient
+	Object model.CakeComponentIngredient
 }
 
 func (parser IngredientParser) CreateActivity(action string) interface{} {

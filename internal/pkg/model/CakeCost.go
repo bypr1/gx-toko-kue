@@ -4,8 +4,6 @@ import (
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"
 )
 
-// CakeCost stores production cost information per cake
-// Table: cake_costs
 type CakeCost struct {
 	xtrememodel.BaseModel
 	CakeID uint    `gorm:"column:cakeId;not null"`

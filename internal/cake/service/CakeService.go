@@ -5,10 +5,10 @@ import (
 	"service/internal/cake/repository"
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
-	error2 "service/internal/pkg/error"
-	form2 "service/internal/pkg/form/cake"
+	errorpkg "service/internal/pkg/error"
+	"service/internal/pkg/form"
 	"service/internal/pkg/model"
-	cakeparser "service/internal/pkg/parser"
+	"service/internal/pkg/parser"
 	"service/internal/pkg/port"
 
 	"gorm.io/gorm"
@@ -17,10 +17,9 @@ import (
 type CakeService interface {
 	SetTransaction(tx *gorm.DB)
 
-	Create(form form2.CakeForm) model.Cake
-	Update(form form2.CakeForm, id uint) model.Cake
-	Delete(id uint) error
-	CalculateCakeCost(cakeModel model.Cake) float64
+	Create(form form.CakeForm) model.Cake
+	Update(form form.CakeForm, id any) model.Cake
+	Delete(id any) bool
 }
 
 func NewCakeService() CakeService {
@@ -44,26 +43,21 @@ func (srv *cakeService) SetActivityRepository(repo port.ActivityRepository) {
 	srv.activityRepository = repo
 }
 
-func (srv *cakeService) Create(form form2.CakeForm) model.Cake {
+func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 	var cakeModel model.Cake
 
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 
-		cakeModel = srv.repository.Store(form)
+		cakeModel = srv.repository.Store(form, srv.calculateSellPrice(form))
+		recipes := srv.repository.AddRecipes(cakeModel, form.Ingredients)
+		costs := srv.repository.AddCosts(cakeModel, form.Costs)
 
-		for _, recipe := range form.Ingredients {
-			cakeRecipe := srv.repository.AddRecipe(cakeModel, recipe)
-			cakeModel.Recipes = append(cakeModel.Recipes, cakeRecipe)
-		}
+		cakeModel.Recipes = append(cakeModel.Recipes, recipes...)
+		cakeModel.Costs = append(cakeModel.Costs, costs...)
 
-		for _, cost := range form.Costs {
-			cakeCost := srv.repository.AddCost(cakeModel, cost)
-			cakeModel.Costs = append(cakeModel.Costs, cakeCost)
-		}
-
-		activity.InitCreate(cakeModel).
-			ParseNewProperty(&cakeparser.CakeParser{Object: cakeModel}).
+		activity.InitCreate(cakeModel, tx).
+			ParseNewProperty(&parser.CakeParser{Object: cakeModel}).
 			Save(fmt.Sprintf("Created new cake: %s [%d]", cakeModel.Name, cakeModel.ID))
 
 		return nil
@@ -72,22 +66,24 @@ func (srv *cakeService) Create(form form2.CakeForm) model.Cake {
 	return cakeModel
 }
 
-func (srv *cakeService) Update(form form2.CakeForm, id uint) model.Cake {
+func (srv *cakeService) Update(form form.CakeForm, id any) model.Cake {
 	var cakeModel model.Cake
 
 	cakeModel = srv.firstOrFail(id)
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 
-		act := activity.InitUpdate(cakeModel).
-			ParseOldProperty(&cakeparser.CakeParser{Object: cakeModel})
+		act := activity.InitUpdate(cakeModel, tx).
+			ParseOldProperty(&parser.CakeParser{Object: cakeModel})
 
-		cakeModel = srv.repository.Update(cakeModel, form)
+		cakeModel = srv.repository.Update(cakeModel, form, srv.calculateSellPrice(form))
+		recipes := srv.repository.UpdateRecipes(cakeModel, form.Ingredients)
+		costs := srv.repository.UpdateCosts(cakeModel, form.Costs)
 
-		srv.repository.UpdateRecipes(cakeModel, form.Ingredients)
-		srv.repository.UpdateCosts(cakeModel, form.Costs)
+		cakeModel.Recipes = append(cakeModel.Recipes, recipes...)
+		cakeModel.Costs = append(cakeModel.Costs, costs...)
 
-		act.ParseNewProperty(&cakeparser.CakeParser{Object: cakeModel}).
+		act.ParseNewProperty(&parser.CakeParser{Object: cakeModel}).
 			Save(fmt.Sprintf("Updated cake: %s [%d]", cakeModel.Name, cakeModel.ID))
 
 		return nil
@@ -96,52 +92,63 @@ func (srv *cakeService) Update(form form2.CakeForm, id uint) model.Cake {
 	return cakeModel
 }
 
-func (srv *cakeService) Delete(id uint) error {
+func (srv *cakeService) Delete(id any) bool {
+	cakeModel := srv.firstOrFail(id)
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
-		cakeModel := srv.repository.FirstById(id)
-		if cakeModel.ID == 0 {
-			error2.ErrXtremeCakeGet("Cake not found")
-		}
 
-		// Delete related recipes and costs first
 		srv.repository.DeleteRecipes(cakeModel)
 		srv.repository.DeleteCosts(cakeModel)
-
-		// Delete the cake
 		srv.repository.Delete(cakeModel)
 
-		activity.InitDelete(cakeModel).
-			ParseOldProperty(&cakeparser.CakeParser{Object: cakeModel}).
+		activity.InitDelete(cakeModel, tx).
+			ParseOldProperty(&parser.CakeParser{Object: cakeModel}).
 			Save(fmt.Sprintf("Deleted cake: %s [%d]", cakeModel.Name, cakeModel.ID))
 
 		return nil
 	})
-	return nil
+	return true
 }
 
-func (srv *cakeService) CalculateCakeCost(cakeModel model.Cake) float64 {
-	var totalCost float64
+func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
+	var sellPrice float64
 
-	// Calculate ingredient costs
-	ingredientRepo := repository.NewIngredientRepository()
-	for _, recipe := range cakeModel.Recipes {
-		ingredient := ingredientRepo.FirstById(recipe.IngredientID)
-		totalCost += ingredient.UnitPrice * recipe.Amount
+	// Calculate total cost from recipes
+	ingredientRepo := repository.NewCakeComponentIngredientRepository()
+
+	var ingredientIDs []any
+	recipeQtys := make(map[uint]float64)
+	for _, recipe := range form.Ingredients {
+		ingredientIDs = append(ingredientIDs, recipe.IngredientID)
+		recipeQtys[recipe.IngredientID] = recipe.Amount
 	}
 
-	// Add other costs
-	for _, cost := range cakeModel.Costs {
-		totalCost += cost.Cost
+	ingredients := ingredientRepo.FindByIds(ingredientIDs)
+	if len(ingredients) == 0 {
+		errorpkg.ErrXtremeIngredientGet("No ingredients found for the cake")
 	}
 
-	return totalCost
+	for _, ingredient := range ingredients {
+		sellPrice += ingredient.UnitPrice * recipeQtys[ingredient.ID]
+	}
+
+	// Add additional costs
+	for _, cost := range form.Costs {
+		sellPrice += cost.Cost
+	}
+
+	// Calculate sell price based on margin
+	if form.Margin > 0 {
+		return sellPrice + (sellPrice * form.Margin / 100)
+	}
+
+	return sellPrice
 }
 
-func (srv *cakeService) firstOrFail(id uint) model.Cake {
+func (srv *cakeService) firstOrFail(id any) model.Cake {
 	cakeModel := srv.repository.FirstById(id)
 	if cakeModel.ID == 0 {
-		error2.ErrXtremeCakeGet("Cake not found")
+		errorpkg.ErrXtremeCakeGet("Cake not found")
 	}
 	return cakeModel
 }
