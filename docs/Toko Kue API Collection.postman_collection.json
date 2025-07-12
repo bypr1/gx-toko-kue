@@ -255,7 +255,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Chocolate Mint Cake\",\n  \"description\": \"Delicious chocolate cake with rich flavor\",\n  \"margin\": 0.3,\n  \"unit\": \"piece\",\n  \"stock\": 10,\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"amount\": 200,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredient_id\": 2,\n      \"amount\": 100,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 5000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 10000\n    }\n  ]\n}",
+							"raw": "{\n  \"name\": \"Chocolate Mint Cake\",\n  \"description\": \"Delicious chocolate cake with rich flavor\",\n  \"margin\": 0.3,\n  \"unit\": \"piece\",\n  \"stock\": 10,\n  \"ingredients\": [\n    {\n      \"ingredientId\": 1,\n      \"amount\": 200,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredientId\": 2,\n      \"amount\": 100,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 5000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 10000\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -286,7 +286,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Chocolate Mint Cake\",\n  \"description\": \"Updated description for chocolate cake\",\n  \"margin\": 0.35,\n  \"unit\": \"piece\",\n  \"stock\": 15,\n  \"ingredients\": [\n    {\n      \"ingredient_id\": 1,\n      \"amount\": 250,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredient_id\": 2,\n      \"amount\": 120,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 6000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 15000\n    }\n  ]\n}",
+							"raw": "{\n  \"name\": \"Updated Chocolate Mint Cake\",\n  \"description\": \"Updated description for chocolate cake\",\n  \"margin\": 0.35,\n  \"unit\": \"piece\",\n  \"stock\": 15,\n  \"ingredients\": [\n    {\n      \"ingredientId\": 1,\n      \"amount\": 250,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredientId\": 2,\n      \"amount\": 120,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 6000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 15000\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -344,6 +344,185 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Get All Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/transactions?page=1&limit=10&search=&transactionDate=&minAmount=&maxAmount=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number for pagination"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Number of items per page"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search term (not used in transactions)"
+								},
+								{
+									"key": "transactionDate",
+									"value": "",
+									"description": "Filter by transaction date (YYYY-MM-DD)"
+								},
+								{
+									"key": "minAmount",
+									"value": "",
+									"description": "Minimum total amount filter"
+								},
+								{
+									"key": "maxAmount",
+									"value": "",
+									"description": "Maximum total amount filter"
+								}
+							]
+						},
+						"description": "Retrieve a paginated list of all transactions with optional filtering"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Transaction Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/transactions/4",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions",
+								"4"
+							]
+						},
+						"description": "Get detailed information about a specific transaction including its details"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"details\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"cakeId\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/transactions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions"
+							]
+						},
+						"description": "Create a new transaction with transaction details. The total amount will be calculated automatically based on cake prices and quantities."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Transaction",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"details\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 3\n        },\n        {\n            \"cakeId\": 3,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/transactions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions",
+								"1"
+							]
+						},
+						"description": "Update an existing transaction. This will replace all transaction details with the new ones provided."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Transaction",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/transactions/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions",
+								"1"
+							]
+						},
+						"description": "Delete a transaction and all its associated transaction details"
+					},
+					"response": []
+				}
+			],
+			"description": "Transaction management endpoints"
 		}
 	],
 	"event": [

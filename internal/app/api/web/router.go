@@ -10,6 +10,7 @@ func Register(router *mux.Router) {
 	activityRouter(router)
 	testingRouter(router)
 	cakeRouter(router)
+	transactionRouter(router)
 }
 
 func activityRouter(router *mux.Router) {
@@ -41,4 +42,15 @@ func cakeRouter(router *mux.Router) {
 	router.HandleFunc("/components/ingredients/{id}", ingredientHandler.Update).Methods("PUT")
 	router.HandleFunc("/components/ingredients/{id}", ingredientHandler.Delete).Methods("DELETE")
 
+}
+
+func transactionRouter(router *mux.Router) {
+	router = router.PathPrefix("/transactions").Subrouter()
+
+	var transactionHandler handler.TransactionHandler
+	router.HandleFunc("", transactionHandler.Get).Methods("GET")
+	router.HandleFunc("", transactionHandler.Create).Methods("POST")
+	router.HandleFunc("/{id}", transactionHandler.Detail).Methods("GET")
+	router.HandleFunc("/{id}", transactionHandler.Update).Methods("PUT")
+	router.HandleFunc("/{id}", transactionHandler.Delete).Methods("DELETE")
 }

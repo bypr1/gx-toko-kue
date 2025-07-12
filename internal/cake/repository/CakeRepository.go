@@ -21,6 +21,7 @@ type CakeRepository interface {
 	Store(form formpkg.CakeForm, sellPrice float64) model.Cake
 	Delete(cake model.Cake)
 	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake
+	FindByIds(ids []any) []model.Cake
 
 	AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
 	UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
@@ -83,6 +84,17 @@ func (repo *cakeRepository) Paginate(parameter url.Values) ([]model.Cake, interf
 	}
 
 	return cakes, pagination, nil
+}
+
+func (repo *cakeRepository) FindByIds(ids []any) []model.Cake {
+	var cakes []model.Cake
+
+	err := repo.transaction.Where("id IN ?", ids).Find(&cakes).Error
+	if err != nil {
+		errorpkg.ErrXtremeCakeGet(err.Error())
+	}
+
+	return cakes
 }
 
 func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) model.Cake {

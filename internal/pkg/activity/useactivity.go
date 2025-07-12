@@ -95,7 +95,7 @@ func (aa UseActivity) Save(description string) error {
 	// TODO: Re-enable this code after installing github.com/globalxtreme/go-identifier module (If you use GX Identifier for authorization)
 	//activity.CausedBy = aa.Employee.ID
 	//activity.CausedByName = aa.Employee.FullName
-	aa.SetConnection(nil)
+	aa = aa.SetConnection(nil)
 
 	err := aa.Connection.Create(&activity).Error
 	if err != nil {
