@@ -18,9 +18,8 @@ func (parser CakeCostParser) Get() []interface{} {
 func (parser CakeCostParser) First() interface{} {
 	cost := parser.Object
 	return map[string]interface{}{
-		"id":     cost.ID,
-		"cakeId": cost.CakeID,
-		"type":   cost.Type,
-		"cost":   cost.Cost,
+		"id":   cost.ID,
+		"type": cost.Type,
+		"cost": cost.Cost,
 	}
 }

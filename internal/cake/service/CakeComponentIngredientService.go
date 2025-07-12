@@ -5,7 +5,7 @@ import (
 	"service/internal/cake/repository"
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
-	errorPkg "service/internal/pkg/error"
+	"service/internal/pkg/constant"
 	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 	cakeparser "service/internal/pkg/parser"
@@ -45,8 +45,7 @@ func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredi
 
 		ingredient = srv.repository.Store(form)
 
-		activity.InitCreate(ingredient, tx).
-			ParseNewProperty(&cakeparser.IngredientParser{Object: ingredient}).
+		activity.UseActivity{}.SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_CREATE).
 			Save(fmt.Sprintf("Created new ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
@@ -58,17 +57,15 @@ func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredi
 func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredientForm, id any) model.CakeComponentIngredient {
 	var ingredient model.CakeComponentIngredient
 
-	ingredient = srv.firstOrFail(id)
-
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeComponentIngredientRepository(tx)
+		ingredient = srv.repository.FirstById(id)
 
-		act := activity.InitUpdate(ingredient, tx).
-			ParseOldProperty(&cakeparser.IngredientParser{Object: ingredient})
+		act := activity.UseActivity{}.SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_UPDATE)
 
 		ingredient = srv.repository.Update(ingredient, form)
 
-		act.ParseNewProperty(&cakeparser.IngredientParser{Object: ingredient}).
+		act.SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_UPDATE).
 			Save(fmt.Sprintf("Updated ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
@@ -78,24 +75,15 @@ func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredi
 }
 
 func (srv *cakeComponentIngredientService) Delete(id any) bool {
-	ingredient := srv.firstOrFail(id)
 	srv.tx.Transaction(func(tx *gorm.DB) error {
-		repository.NewCakeComponentIngredientRepository(tx).
-			Delete(ingredient)
+		srv.repository = repository.NewCakeComponentIngredientRepository(tx)
+		ingredient := srv.repository.FirstById(id)
+		srv.repository.Delete(ingredient)
 
-		activity.InitDelete(ingredient, tx).
-			ParseOldProperty(&cakeparser.IngredientParser{Object: ingredient}).
+		activity.UseActivity{}.SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_DELETE).
 			Save(fmt.Sprintf("Deleted ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
 	})
 	return true
-}
-
-func (srv *cakeComponentIngredientService) firstOrFail(id any) model.CakeComponentIngredient {
-	ingredientModel := srv.repository.FirstById(id)
-	if ingredientModel.ID == 0 {
-		errorPkg.ErrXtremeIngredientGet("Ingredient not found")
-	}
-	return ingredientModel
 }

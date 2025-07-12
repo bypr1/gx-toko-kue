@@ -6,7 +6,6 @@ import (
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
 	"service/internal/pkg/form"
-	"service/internal/pkg/model"
 	cakeparser "service/internal/pkg/parser"
 
 	"github.com/gorilla/mux"
@@ -18,21 +17,18 @@ type CakeHandler struct{}
 
 func (CakeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	repo := repository.NewCakeRepository()
+
 	cakes, pagination, _ := repo.Paginate(r.URL.Query())
 
 	psr := cakeparser.CakeParser{Array: cakes}
-
-	res := xtremeres.Response{Array: psr.Briefs(), Pagination: &pagination}
+	res := xtremeres.Response{Array: psr.Get(), Pagination: &pagination}
 	res.Success(w)
 }
 
 func (CakeHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	repo := repository.NewCakeRepository()
 
-	var cake model.Cake
-	if id := mux.Vars(r)["id"]; id != "" {
-		cake = repo.FirstById(id)
-	}
+	cake := repo.FirstById(mux.Vars(r)["id"], repo.WithRecipesAndCosts)
 
 	psr := cakeparser.CakeParser{Object: cake}
 	res := xtremeres.Response{Object: psr.Brief()}
@@ -58,11 +54,7 @@ func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	form.Validate()
 
 	srv := service.NewCakeService()
-
-	var cake model.Cake
-	if id := mux.Vars(r)["id"]; id != "" {
-		cake = srv.Update(form, id)
-	}
+	cake := srv.Update(form, mux.Vars(r)["id"])
 
 	psr := cakeparser.CakeParser{Object: cake}
 	res := xtremeres.Response{Object: psr.Brief()}
@@ -71,11 +63,8 @@ func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (CakeHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	srv := service.NewCakeService()
+	srv.Delete(mux.Vars(r)["id"])
 
-	if id := mux.Vars(r)["id"]; id != "" {
-		srv.Delete(id)
-	}
-
-	res := xtremeres.Response{Object: map[string]interface{}{"message": "Cake deleted successfully"}}
+	res := xtremeres.Response{}
 	res.Success(w)
 }

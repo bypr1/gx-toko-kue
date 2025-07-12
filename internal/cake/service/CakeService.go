@@ -5,7 +5,7 @@ import (
 	"service/internal/cake/repository"
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
-	errorpkg "service/internal/pkg/error"
+	"service/internal/pkg/constant"
 	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 	"service/internal/pkg/parser"
@@ -18,8 +18,8 @@ type CakeService interface {
 	SetTransaction(tx *gorm.DB)
 
 	Create(form form.CakeForm) model.Cake
-	Update(form form.CakeForm, id any) model.Cake
-	Delete(id any) bool
+	Update(form form.CakeForm, id string) model.Cake
+	Delete(id string) bool
 }
 
 func NewCakeService() CakeService {
@@ -44,66 +44,63 @@ func (srv *cakeService) SetActivityRepository(repo port.ActivityRepository) {
 }
 
 func (srv *cakeService) Create(form form.CakeForm) model.Cake {
-	var cakeModel model.Cake
+	var cake model.Cake
 
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 
-		cakeModel = srv.repository.Store(form, srv.calculateSellPrice(form))
-		recipes := srv.repository.AddRecipes(cakeModel, form.Ingredients)
-		costs := srv.repository.AddCosts(cakeModel, form.Costs)
+		cake = srv.repository.Store(form, srv.calculateSellPrice(form))
+		recipes := srv.repository.AddRecipes(cake, form.Ingredients)
+		costs := srv.repository.AddCosts(cake, form.Costs)
 
-		cakeModel.Recipes = append(cakeModel.Recipes, recipes...)
-		cakeModel.Costs = append(cakeModel.Costs, costs...)
+		cake.Recipes = append(cake.Recipes, recipes...)
+		cake.Costs = append(cake.Costs, costs...)
 
-		activity.InitCreate(cakeModel, tx).
-			ParseNewProperty(&parser.CakeParser{Object: cakeModel}).
-			Save(fmt.Sprintf("Created new cake: %s [%d]", cakeModel.Name, cakeModel.ID))
+		activity.UseActivity{}.SetParser(&parser.CakeParser{Object: cake}).SetNewProperty(constant.ACTION_CREATE).
+			Save(fmt.Sprintf("Created new cake: %s [%d]", cake.Name, cake.ID))
 
 		return nil
 	})
 
-	return cakeModel
+	return cake
 }
 
-func (srv *cakeService) Update(form form.CakeForm, id any) model.Cake {
-	var cakeModel model.Cake
+func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
+	var cake model.Cake
 
-	cakeModel = srv.firstOrFail(id)
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
+		cake = srv.repository.FirstById(id)
 
-		act := activity.InitUpdate(cakeModel, tx).
-			ParseOldProperty(&parser.CakeParser{Object: cakeModel})
+		act := activity.UseActivity{}.SetParser(&parser.CakeParser{Object: cake}).SetOldProperty(constant.ACTION_UPDATE)
 
-		cakeModel = srv.repository.Update(cakeModel, form, srv.calculateSellPrice(form))
-		recipes := srv.repository.UpdateRecipes(cakeModel, form.Ingredients)
-		costs := srv.repository.UpdateCosts(cakeModel, form.Costs)
+		cake = srv.repository.Update(cake, form, srv.calculateSellPrice(form))
+		recipes := srv.repository.UpdateRecipes(cake, form.Ingredients)
+		costs := srv.repository.UpdateCosts(cake, form.Costs)
 
-		cakeModel.Recipes = append(cakeModel.Recipes, recipes...)
-		cakeModel.Costs = append(cakeModel.Costs, costs...)
+		cake.Recipes = append(cake.Recipes, recipes...)
+		cake.Costs = append(cake.Costs, costs...)
 
-		act.ParseNewProperty(&parser.CakeParser{Object: cakeModel}).
-			Save(fmt.Sprintf("Updated cake: %s [%d]", cakeModel.Name, cakeModel.ID))
+		act.SetParser(&parser.CakeParser{Object: cake}).SetNewProperty(constant.ACTION_UPDATE).
+			Save(fmt.Sprintf("Updated cake: %s [%d]", cake.Name, cake.ID))
 
 		return nil
 	})
 
-	return cakeModel
+	return cake
 }
 
-func (srv *cakeService) Delete(id any) bool {
-	cakeModel := srv.firstOrFail(id)
+func (srv *cakeService) Delete(id string) bool {
 	srv.tx.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
+		cake := srv.repository.FirstById(id)
 
-		srv.repository.DeleteRecipes(cakeModel)
-		srv.repository.DeleteCosts(cakeModel)
-		srv.repository.Delete(cakeModel)
+		srv.repository.DeleteRecipes(cake)
+		srv.repository.DeleteCosts(cake)
+		srv.repository.Delete(cake)
 
-		activity.InitDelete(cakeModel, tx).
-			ParseOldProperty(&parser.CakeParser{Object: cakeModel}).
-			Save(fmt.Sprintf("Deleted cake: %s [%d]", cakeModel.Name, cakeModel.ID))
+		activity.UseActivity{}.SetParser(&parser.CakeParser{Object: cake}).SetOldProperty(constant.ACTION_DELETE).
+			Save(fmt.Sprintf("Deleted cake: %s [%d]", cake.Name, cake.ID))
 
 		return nil
 	})
@@ -124,10 +121,6 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	}
 
 	ingredients := ingredientRepo.FindByIds(ingredientIDs)
-	if len(ingredients) == 0 {
-		errorpkg.ErrXtremeIngredientGet("No ingredients found for the cake")
-	}
-
 	for _, ingredient := range ingredients {
 		sellPrice += ingredient.UnitPrice * recipeQtys[ingredient.ID]
 	}
@@ -143,12 +136,4 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	}
 
 	return sellPrice
-}
-
-func (srv *cakeService) firstOrFail(id any) model.Cake {
-	cakeModel := srv.repository.FirstById(id)
-	if cakeModel.ID == 0 {
-		errorpkg.ErrXtremeCakeGet("Cake not found")
-	}
-	return cakeModel
 }

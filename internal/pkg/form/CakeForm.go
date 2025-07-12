@@ -18,7 +18,7 @@ type CakeForm struct {
 }
 
 type CakeCompIngredientForm struct {
-	IngredientID uint    `json:"ingredient_id" validate:"required,gt=0"`
+	IngredientID uint    `json:"ingredientId" validate:"required,gt=0"`
 	Amount       float64 `json:"amount" validate:"required,gte=0"`
 	Unit         string  `json:"unit" validate:"required,max=50"`
 }

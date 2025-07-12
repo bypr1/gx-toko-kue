@@ -19,16 +19,18 @@ type CakeRepository interface {
 	core.FirstIdRepository[model.Cake]
 
 	Store(form formpkg.CakeForm, sellPrice float64) model.Cake
-	Delete(cakeModel model.Cake)
-	Update(cakeModel model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake
+	Delete(cake model.Cake)
+	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake
 
-	AddRecipes(cakeModel model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
-	UpdateRecipes(cakeModel model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
-	DeleteRecipes(cakeModel model.Cake)
+	AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
+	UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
+	DeleteRecipes(cake model.Cake)
 
-	AddCosts(cakeModel model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
-	UpdateCosts(cakeModel model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
-	DeleteCosts(cakeModel model.Cake)
+	AddCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
+	UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
+	DeleteCosts(cake model.Cake)
+
+	WithRecipesAndCosts(query *gorm.DB) *gorm.DB
 }
 
 func NewCakeRepository(args ...*gorm.DB) CakeRepository {
@@ -51,19 +53,19 @@ func (repo *cakeRepository) SetTransaction(tx *gorm.DB) {
 }
 
 func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Cake {
-	var cakeModel model.Cake
+	var cake model.Cake
 	query := repo.transaction
 
 	if len(args) > 0 {
 		query = args[0](query)
 	}
 
-	err := query.First(&cakeModel, "id = ?", id).Error
+	err := query.First(&cake, "id = ?", id).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeGet(err.Error())
 	}
 
-	return cakeModel
+	return cake
 }
 
 func (repo *cakeRepository) Paginate(parameter url.Values) ([]model.Cake, interface{}, error) {
@@ -84,7 +86,7 @@ func (repo *cakeRepository) Paginate(parameter url.Values) ([]model.Cake, interf
 }
 
 func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) model.Cake {
-	cakeModel := model.Cake{
+	cake := model.Cake{
 		Name:        form.Name,
 		Description: form.Description,
 		Margin:      form.Margin,
@@ -93,40 +95,40 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) mode
 		Stock:       form.Stock,
 	}
 
-	err := repo.transaction.Create(&cakeModel).Error
+	err := repo.transaction.Create(&cake).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeSave(err.Error())
 	}
 
-	return cakeModel
+	return cake
 }
 
-func (repo *cakeRepository) Update(cakeModel model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake {
-	cakeModel.Name = form.Name
-	cakeModel.Description = form.Description
-	cakeModel.Margin = form.Margin
-	cakeModel.SellPrice = sellPrice
-	cakeModel.Unit = form.Unit
-	cakeModel.Stock = form.Stock
+func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake {
+	cake.Name = form.Name
+	cake.Description = form.Description
+	cake.Margin = form.Margin
+	cake.SellPrice = sellPrice
+	cake.Unit = form.Unit
+	cake.Stock = form.Stock
 
-	err := repo.transaction.Save(&cakeModel).Error
+	err := repo.transaction.Save(&cake).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeSave(err.Error())
 	}
 
-	return cakeModel
+	return cake
 }
 
-func (repo *cakeRepository) Delete(cakeModel model.Cake) {
-	err := repo.transaction.Delete(&cakeModel).Error
+func (repo *cakeRepository) Delete(cake model.Cake) {
+	err := repo.transaction.Delete(&cake).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeDelete(err.Error())
 	}
 }
 
-func (repo *cakeRepository) addRecipe(cakeModel model.Cake, recipe formpkg.CakeCompIngredientForm) model.CakeRecipeIngredient {
+func (repo *cakeRepository) addRecipe(cake model.Cake, recipe formpkg.CakeCompIngredientForm) model.CakeRecipeIngredient {
 	cakeRecipe := model.CakeRecipeIngredient{
-		CakeID:       cakeModel.ID,
+		CakeID:       cake.ID,
 		IngredientID: recipe.IngredientID,
 		Amount:       recipe.Amount,
 		Unit:         recipe.Unit,
@@ -140,30 +142,30 @@ func (repo *cakeRepository) addRecipe(cakeModel model.Cake, recipe formpkg.CakeC
 	return cakeRecipe
 }
 
-func (repo *cakeRepository) AddRecipes(cakeModel model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
+func (repo *cakeRepository) AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
 	var cakeRecipes []model.CakeRecipeIngredient
 	for _, recipe := range recipes {
-		cakeRecipe := repo.addRecipe(cakeModel, recipe)
+		cakeRecipe := repo.addRecipe(cake, recipe)
 		cakeRecipes = append(cakeRecipes, cakeRecipe)
 	}
 	return cakeRecipes
 }
 
-func (repo *cakeRepository) UpdateRecipes(cakeModel model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
-	repo.DeleteRecipes(cakeModel)
-	return repo.AddRecipes(cakeModel, recipes)
+func (repo *cakeRepository) UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
+	repo.DeleteRecipes(cake)
+	return repo.AddRecipes(cake, recipes)
 }
 
-func (repo *cakeRepository) DeleteRecipes(cakeModel model.Cake) {
-	err := repo.transaction.Where("\"cakeId\" = ?", cakeModel.ID).Delete(&model.CakeRecipeIngredient{}).Error
+func (repo *cakeRepository) DeleteRecipes(cake model.Cake) {
+	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeRecipeIngredient{}).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeRecipeDelete(err.Error())
 	}
 }
 
-func (repo *cakeRepository) addCost(cakeModel model.Cake, cost formpkg.CakeCompCostForm) model.CakeCost {
+func (repo *cakeRepository) addCost(cake model.Cake, cost formpkg.CakeCompCostForm) model.CakeCost {
 	cakeCost := model.CakeCost{
-		CakeID: cakeModel.ID,
+		CakeID: cake.ID,
 		Type:   cost.CostType,
 		Cost:   cost.Cost,
 	}
@@ -176,24 +178,28 @@ func (repo *cakeRepository) addCost(cakeModel model.Cake, cost formpkg.CakeCompC
 	return cakeCost
 }
 
-func (repo *cakeRepository) AddCosts(cakeModel model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
+func (repo *cakeRepository) AddCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
 	var cakeCosts []model.CakeCost
 	for _, cost := range costs {
-		cakeCost := repo.addCost(cakeModel, cost)
+		cakeCost := repo.addCost(cake, cost)
 		cakeCosts = append(cakeCosts, cakeCost)
 	}
 	return cakeCosts
 }
 
-func (repo *cakeRepository) UpdateCosts(cakeModel model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
+func (repo *cakeRepository) UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
 	// Delete existing and replace with new costs
-	repo.DeleteCosts(cakeModel)
-	return repo.AddCosts(cakeModel, costs)
+	repo.DeleteCosts(cake)
+	return repo.AddCosts(cake, costs)
 }
 
-func (repo *cakeRepository) DeleteCosts(cakeModel model.Cake) {
-	err := repo.transaction.Where("\"cakeId\" = ?", cakeModel.ID).Delete(&model.CakeCost{}).Error
+func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
+	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeCost{}).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeCostDelete(err.Error())
 	}
+}
+
+func (repo *cakeRepository) WithRecipesAndCosts(query *gorm.DB) *gorm.DB {
+	return query.Preload("Recipes.Ingredient").Preload("Costs")
 }
