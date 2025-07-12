@@ -6,7 +6,6 @@ import (
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
 	"service/internal/pkg/form"
-	"service/internal/pkg/model"
 	cakeparser "service/internal/pkg/parser"
 
 	"github.com/gorilla/mux"
@@ -29,10 +28,7 @@ func (IngredientHandler) Get(w http.ResponseWriter, r *http.Request) {
 func (IngredientHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	repo := repository.NewCakeComponentIngredientRepository()
 
-	var ingredient model.CakeComponentIngredient
-	if id := mux.Vars(r)["id"]; id != "" {
-		ingredient = repo.FirstById(id)
-	}
+	ingredient := repo.FirstById(mux.Vars(r)["id"])
 
 	psr := cakeparser.IngredientParser{Object: ingredient}
 	res := xtremeres.Response{Object: psr.First()}
@@ -58,10 +54,7 @@ func (IngredientHandler) Update(w http.ResponseWriter, r *http.Request) {
 	form.Validate()
 
 	srv := service.NewIngredientService()
-	var ingredient model.CakeComponentIngredient
-	if id := mux.Vars(r)["id"]; id != "" {
-		ingredient = srv.Update(form, id)
-	}
+	ingredient := srv.Update(form, mux.Vars(r)["id"])
 
 	psr := cakeparser.IngredientParser{Object: ingredient}
 	res := xtremeres.Response{Object: psr.First()}
@@ -70,11 +63,8 @@ func (IngredientHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (IngredientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	srv := service.NewIngredientService()
+	srv.Delete(mux.Vars(r)["id"])
 
-	if id := mux.Vars(r)["id"]; id != "" {
-		srv.Delete(id)
-	}
-
-	res := xtremeres.Response{Object: map[string]interface{}{"message": "Ingredient deleted successfully"}}
+	res := xtremeres.Response{}
 	res.Success(w)
 }

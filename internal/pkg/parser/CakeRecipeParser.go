@@ -18,12 +18,11 @@ func (parser CakeRecipeParser) Get() []interface{} {
 func (parser CakeRecipeParser) First() interface{} {
 	recipe := parser.Object
 	return map[string]interface{}{
-		"id":           recipe.ID,
-		"cakeId":       recipe.CakeID,
-		"ingredientId": recipe.IngredientID,
-		"amount":       recipe.Amount,
-		"unit":         recipe.Unit,
+		"id":     recipe.ID,
+		"amount": recipe.Amount,
+		"unit":   recipe.Unit,
 		"ingredient": map[string]interface{}{
+			"id":   recipe.IngredientID,
 			"name": recipe.Ingredient.Name,
 			"unit": recipe.Ingredient.Unit,
 		},
