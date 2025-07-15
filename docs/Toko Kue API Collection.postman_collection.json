@@ -674,7 +674,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"details\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"cakeId\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"cakes\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"cakeId\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -707,7 +707,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"details\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 3\n        },\n        {\n            \"cakeId\": 3,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"cakes\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 3\n        },\n        {\n            \"cakeId\": 3,\n            \"quantity\": 1\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"

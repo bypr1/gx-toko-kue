@@ -45,11 +45,11 @@ func (srv *transactionService) Create(form form.TransactionForm) model.Transacti
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.prepareRepository(tx)
 
-		cakes := srv.getCakes(form.Details)
-		totalAmount := srv.calculateTotalPrice(form.Details, cakes)
+		cakes := srv.getCakes(form.Cakes)
+		totalAmount := srv.calculateTotalPrice(form.Cakes, cakes)
 
 		transaction = srv.repository.Store(form, totalAmount)
-		details := srv.repository.AddCakes(transaction, form.Details, cakes)
+		details := srv.repository.AddCakes(transaction, form.Cakes, cakes)
 
 		transaction.Cakes = append(transaction.Cakes, details...)
 
@@ -75,11 +75,11 @@ func (srv *transactionService) Update(form form.TransactionForm, id string) mode
 			SetParser(&parser.TransactionParser{Object: transaction}).
 			SetOldProperty(constant.ACTION_UPDATE)
 
-		cakes := srv.getCakes(form.Details)
-		totalAmount := srv.calculateTotalPrice(form.Details, cakes)
+		cakes := srv.getCakes(form.Cakes)
+		totalAmount := srv.calculateTotalPrice(form.Cakes, cakes)
 
 		transaction = srv.repository.Update(transaction, form, totalAmount)
-		details := srv.repository.UpdateCakes(transaction, form.Details, cakes)
+		details := srv.repository.UpdateCakes(transaction, form.Cakes, cakes)
 
 		transaction.Cakes = append(transaction.Cakes, details...)
 
@@ -121,7 +121,7 @@ func (srv *transactionService) DownloadExcel(parameter url.Values) string {
 	return filename
 }
 
-func (srv *transactionService) getCakes(details []form.TransactionDetailCakeForm) map[uint]model.Cake {
+func (srv *transactionService) getCakes(details []form.TransactionCakeForm) map[uint]model.Cake {
 	var cakeIDs []any
 	for _, detail := range details {
 		cakeIDs = append(cakeIDs, detail.CakeID)
@@ -135,7 +135,7 @@ func (srv *transactionService) getCakes(details []form.TransactionDetailCakeForm
 	return cakeMap
 }
 
-func (srv *transactionService) calculateTotalPrice(details []form.TransactionDetailCakeForm, cakeMap map[uint]model.Cake) float64 {
+func (srv *transactionService) calculateTotalPrice(details []form.TransactionCakeForm, cakeMap map[uint]model.Cake) float64 {
 	var totalAmount float64
 	for _, detail := range details {
 		if cake, exists := cakeMap[detail.CakeID]; exists {

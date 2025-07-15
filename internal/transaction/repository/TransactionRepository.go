@@ -26,8 +26,8 @@ type TransactionRepository interface {
 	Delete(transaction model.Transaction)
 	Update(transaction model.Transaction, form formpkg.TransactionForm, totalAmount float64) model.Transaction
 
-	AddCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
-	UpdateCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
+	AddCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
+	UpdateCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
 	DeleteCakes(transaction model.Transaction)
 
 	PreloadCakes(query *gorm.DB) *gorm.DB
@@ -172,7 +172,7 @@ func (repo *transactionRepository) Delete(transaction model.Transaction) {
 	}
 }
 
-func (repo *transactionRepository) addDetail(transaction model.Transaction, detail formpkg.TransactionDetailCakeForm, cake model.Cake) model.TransactionDetailCake {
+func (repo *transactionRepository) addDetail(transaction model.Transaction, detail formpkg.TransactionCakeForm, cake model.Cake) model.TransactionDetailCake {
 	subTotal := float64(detail.Quantity) * cake.SellPrice
 
 	transactionDetail := model.TransactionDetailCake{
@@ -191,7 +191,7 @@ func (repo *transactionRepository) addDetail(transaction model.Transaction, deta
 	return transactionDetail
 }
 
-func (repo *transactionRepository) AddCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
+func (repo *transactionRepository) AddCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
 	var transactionDetails []model.TransactionDetailCake
 	for _, detail := range details {
 		cake := cakes[detail.CakeID]
@@ -201,7 +201,7 @@ func (repo *transactionRepository) AddCakes(transaction model.Transaction, detai
 	return transactionDetails
 }
 
-func (repo *transactionRepository) UpdateCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
+func (repo *transactionRepository) UpdateCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
 	repo.DeleteCakes(transaction)
 	return repo.AddCakes(transaction, details, cakes)
 }
