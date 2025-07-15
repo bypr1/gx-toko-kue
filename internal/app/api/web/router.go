@@ -50,6 +50,7 @@ func transactionRouter(router *mux.Router) {
 	var transactionHandler handler.TransactionHandler
 	router.HandleFunc("", transactionHandler.Get).Methods("GET")
 	router.HandleFunc("", transactionHandler.Create).Methods("POST")
+	router.HandleFunc("/download/excel", transactionHandler.DownloadExcel).Methods("GET")
 	router.HandleFunc("/{id}", transactionHandler.Detail).Methods("GET")
 	router.HandleFunc("/{id}", transactionHandler.Update).Methods("PUT")
 	router.HandleFunc("/{id}", transactionHandler.Delete).Methods("DELETE")

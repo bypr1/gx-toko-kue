@@ -18,9 +18,9 @@ type CakeRepository interface {
 	core.PaginateRepository[model.Cake]
 	core.FirstIdRepository[model.Cake]
 
-	Store(form formpkg.CakeForm, sellPrice float64) model.Cake
+	Store(form formpkg.CakeForm, sellPrice float64, image string) model.Cake
 	Delete(cake model.Cake)
-	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake
+	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake
 	FindByIds(ids []any) []model.Cake
 
 	AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
@@ -31,7 +31,7 @@ type CakeRepository interface {
 	UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
 	DeleteCosts(cake model.Cake)
 
-	WithRecipesAndCosts(query *gorm.DB) *gorm.DB
+	PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB
 }
 
 func NewCakeRepository(args ...*gorm.DB) CakeRepository {
@@ -97,7 +97,7 @@ func (repo *cakeRepository) FindByIds(ids []any) []model.Cake {
 	return cakes
 }
 
-func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) model.Cake {
+func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64, image string) model.Cake {
 	cake := model.Cake{
 		Name:        form.Name,
 		Description: form.Description,
@@ -105,6 +105,7 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) mode
 		SellPrice:   sellPrice,
 		Unit:        form.Unit,
 		Stock:       form.Stock,
+		Image:       image,
 	}
 
 	err := repo.transaction.Create(&cake).Error
@@ -115,13 +116,14 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) mode
 	return cake
 }
 
-func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake {
+func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake {
 	cake.Name = form.Name
 	cake.Description = form.Description
 	cake.Margin = form.Margin
 	cake.SellPrice = sellPrice
 	cake.Unit = form.Unit
 	cake.Stock = form.Stock
+	cake.Image = image
 
 	err := repo.transaction.Save(&cake).Error
 	if err != nil {
@@ -212,6 +214,6 @@ func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) WithRecipesAndCosts(query *gorm.DB) *gorm.DB {
+func (repo *cakeRepository) PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB {
 	return query.Preload("Recipes.Ingredient").Preload("Costs")
 }

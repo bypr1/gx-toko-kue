@@ -14,6 +14,7 @@ type Cake struct {
 	Stock       int                    `gorm:"column:stock;default:0"`                  // Stock quantity of the cake
 	Recipes     []CakeRecipeIngredient `gorm:"one2many:cake_recipes;foreignKey:CakeID"` // Recipes associated with the cake
 	Costs       []CakeCost             `gorm:"one2many:cake_costs;foreignKey:CakeID"`
+	Image       string                 `gorm:"column:image;type:varchar(255);default:null"` // Image path for the cake
 }
 
 func (Cake) TableName() string {

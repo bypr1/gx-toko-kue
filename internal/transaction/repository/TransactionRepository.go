@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"net/url"
 	"service/internal/pkg/config"
 	"service/internal/pkg/core"
@@ -17,16 +18,19 @@ type TransactionRepository interface {
 
 	core.PaginateRepository[model.Transaction]
 	core.FirstIdRepository[model.Transaction]
+	core.FindRepository[model.Transaction]
+
+	FindForReport(parameter url.Values) []model.TransactionReport
 
 	Store(form formpkg.TransactionForm, totalAmount float64) model.Transaction
 	Delete(transaction model.Transaction)
 	Update(transaction model.Transaction, form formpkg.TransactionForm, totalAmount float64) model.Transaction
 
-	AddDetails(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
-	UpdateDetails(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
-	DeleteDetails(transaction model.Transaction)
+	AddCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
+	UpdateCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
+	DeleteCakes(transaction model.Transaction)
 
-	WithDetails(query *gorm.DB) *gorm.DB
+	PreloadCakes(query *gorm.DB) *gorm.DB
 }
 
 func NewTransactionRepository(args ...*gorm.DB) TransactionRepository {
@@ -64,14 +68,60 @@ func (repo *transactionRepository) FirstById(id any, args ...func(query *gorm.DB
 	return transaction
 }
 
-func (repo *transactionRepository) Paginate(parameter url.Values) ([]model.Transaction, interface{}, error) {
+func (repo *transactionRepository) Find(parameter url.Values) []model.Transaction {
 	fromDate, toDate := core.SetDateRange(parameter)
 
 	query := repo.transaction.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
-	if transactionDate := parameter.Get("transactionDate"); transactionDate != "" {
-		query = query.Where("DATE(\"transactionDate\") = ?", transactionDate)
+	if minAmount := parameter.Get("minAmount"); minAmount != "" {
+		query = query.Where("\"totalAmount\" >= ?", minAmount)
 	}
+
+	if maxAmount := parameter.Get("maxAmount"); maxAmount != "" {
+		query = query.Where("\"totalAmount\" <= ?", maxAmount)
+	}
+
+	var transactions []model.Transaction
+	err := query.Order("id DESC").Find(&transactions).Error
+	if err != nil {
+		errorpkg.ErrXtremeTransactionGet(err.Error())
+	}
+
+	return transactions
+}
+
+func (repo *transactionRepository) FindForReport(parameter url.Values) []model.TransactionReport {
+	fromDate, toDate := core.SetDateRange(parameter)
+
+	query := repo.transaction.
+		Select(`transactions.*, 
+                details."totalAmount" as "totalAmount", 
+                details."totalCakes" as "totalCakes"`).
+		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate).
+		Joins(fmt.Sprintf(`
+			INNER JOIN (
+				SELECT "transactionId", SUM("subTotal") AS "totalAmount", COUNT("id") AS "totalCakes"
+				FROM %s
+				GROUP BY "transactionId"
+			) AS "details" ON %s."id" = "details"."transactionId"
+		`,
+			model.TransactionDetailCake{}.TableName(),
+			model.Transaction{}.TableName(),
+		)).Preload("Details.Cake")
+
+	var transactions []model.TransactionReport
+	err := query.Order("id DESC").Find(&transactions).Error
+	if err != nil {
+		errorpkg.ErrXtremeTransactionGet(err.Error())
+	}
+
+	return transactions
+}
+
+func (repo *transactionRepository) Paginate(parameter url.Values) ([]model.Transaction, interface{}, error) {
+	fromDate, toDate := core.SetDateRange(parameter)
+
+	query := repo.transaction.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if minAmount := parameter.Get("minAmount"); minAmount != "" {
 		query = query.Where("\"totalAmount\" >= ?", minAmount)
@@ -141,7 +191,7 @@ func (repo *transactionRepository) addDetail(transaction model.Transaction, deta
 	return transactionDetail
 }
 
-func (repo *transactionRepository) AddDetails(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
+func (repo *transactionRepository) AddCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
 	var transactionDetails []model.TransactionDetailCake
 	for _, detail := range details {
 		cake := cakes[detail.CakeID]
@@ -151,18 +201,18 @@ func (repo *transactionRepository) AddDetails(transaction model.Transaction, det
 	return transactionDetails
 }
 
-func (repo *transactionRepository) UpdateDetails(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
-	repo.DeleteDetails(transaction)
-	return repo.AddDetails(transaction, details, cakes)
+func (repo *transactionRepository) UpdateCakes(transaction model.Transaction, details []formpkg.TransactionDetailCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
+	repo.DeleteCakes(transaction)
+	return repo.AddCakes(transaction, details, cakes)
 }
 
-func (repo *transactionRepository) DeleteDetails(transaction model.Transaction) {
+func (repo *transactionRepository) DeleteCakes(transaction model.Transaction) {
 	err := repo.transaction.Where("\"transactionId\" = ?", transaction.ID).Delete(&model.TransactionDetailCake{}).Error
 	if err != nil {
 		errorpkg.ErrXtremeTransactionDetailDelete(err.Error())
 	}
 }
 
-func (repo *transactionRepository) WithDetails(query *gorm.DB) *gorm.DB {
-	return query.Preload("Details.Cake")
+func (repo *transactionRepository) PreloadCakes(query *gorm.DB) *gorm.DB {
+	return query.Preload("Cakes.Cake")
 }

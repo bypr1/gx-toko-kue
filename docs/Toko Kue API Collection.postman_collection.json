@@ -342,6 +342,238 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update (Multipart)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Premium Chocolate Cake",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Premium chocolate cake with premium ingredients",
+									"type": "text"
+								},
+								{
+									"key": "margin",
+									"value": "30.0",
+									"type": "text"
+								},
+								{
+									"key": "unit",
+									"value": "pieces",
+									"type": "text"
+								},
+								{
+									"key": "stock",
+									"value": "15",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][ingredientId]",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][amount]",
+									"value": "3.0",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][unit]",
+									"value": "kg",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][ingredientId]",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][amount]",
+									"value": "8",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][unit]",
+									"value": "pcs",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[2][ingredientId]",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[2][amount]",
+									"value": "1.5",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[2][unit]",
+									"value": "kg",
+									"type": "text"
+								},
+								{
+									"key": "costs[0][type]",
+									"value": "Labor",
+									"type": "text"
+								},
+								{
+									"key": "costs[0][cost]",
+									"value": "75000",
+									"type": "text"
+								},
+								{
+									"key": "costs[1][type]",
+									"value": "Packaging",
+									"type": "text"
+								},
+								{
+									"key": "costs[1][cost]",
+									"value": "20000",
+									"type": "text"
+								},
+								{
+									"key": "costs[2][type]",
+									"value": "Delivery",
+									"type": "text"
+								},
+								{
+									"key": "costs[2][cost]",
+									"value": "10000",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/Users/user/Downloads/_MG_7415-removebg-preview (1).jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/cakes/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cakes",
+								"1"
+							]
+						},
+						"description": "Generated from cURL: curl -X PUT http://localhost:8080/api/cakes/1 \\\n  -H \"Content-Type: multipart/form-data\" \\\n  -F \"name=Premium Chocolate Cake\" \\\n  -F \"description=Premium chocolate cake with premium ingredients\" \\\n  -F \"margin=30.0\" \\\n  -F \"unit=pieces\" \\\n  -F \"stock=15\" \\\n  -F \"ingredients[0][ingredientId]=1\" \\\n  -F \"ingredients[0][amount]=3.0\" \\\n  -F \"ingredients[0][unit]=kg\" \\\n  -F \"ingredients[1][ingredientId]=2\" \\\n  -F \"ingredients[1][amount]=8\" \\\n  -F \"ingredients[1][unit]=pcs\" \\\n  -F \"ingredients[2][ingredientId]=3\" \\\n  -F \"ingredients[2][amount]=1.5\" \\\n  -F \"ingredients[2][unit]=kg\" \\\n  -F \"costs[0][type]=Labor\" \\\n  -F \"costs[0][cost]=75000\" \\\n  -F \"costs[1][type]=Packaging\" \\\n  -F \"costs[1][cost]=20000\" \\\n  -F \"costs[2][type]=Delivery\" \\\n  -F \"costs[2][cost]=10000\" \\\n  -F \"image=@/path/to/updated-cake-image.jpg\""
+					},
+					"response": []
+				},
+				{
+					"name": "Create (Multipart)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Chocolate Cake",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Delicious chocolate cake with rich flavor",
+									"type": "text"
+								},
+								{
+									"key": "margin",
+									"value": "25.5",
+									"type": "text"
+								},
+								{
+									"key": "unit",
+									"value": "pieces",
+									"type": "text"
+								},
+								{
+									"key": "stock",
+									"value": "10",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][ingredientId]",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][amount]",
+									"value": "2.5",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][unit]",
+									"value": "kg",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][ingredientId]",
+									"value": "2",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][amount]",
+									"value": "6",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][unit]",
+									"value": "pcs",
+									"type": "text"
+								},
+								{
+									"key": "costs[0][type]",
+									"value": "Labor",
+									"type": "text"
+								},
+								{
+									"key": "costs[0][cost]",
+									"value": "50000",
+									"type": "text"
+								},
+								{
+									"key": "costs[1][type]",
+									"value": "Packaging",
+									"type": "text"
+								},
+								{
+									"key": "costs[1][cost]",
+									"value": "15000",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "/path/to/cake-image.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/cakes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cakes"
+							]
+						},
+						"description": "Generated from cURL: curl -X POST http://localhost:8080/api/cakes \\\n  -H \"Content-Type: multipart/form-data\" \\\n  -F \"name=Chocolate Cake\" \\\n  -F \"description=Delicious chocolate cake with rich flavor\" \\\n  -F \"margin=25.5\" \\\n  -F \"unit=pieces\" \\\n  -F \"stock=10\" \\\n  -F \"ingredients[0][ingredientId]=1\" \\\n  -F \"ingredients[0][amount]=2.5\" \\\n  -F \"ingredients[0][unit]=kg\" \\\n  -F \"ingredients[1][ingredientId]=2\" \\\n  -F \"ingredients[1][amount]=6\" \\\n  -F \"ingredients[1][unit]=pcs\" \\\n  -F \"costs[0][type]=Labor\" \\\n  -F \"costs[0][cost]=50000\" \\\n  -F \"costs[1][type]=Packaging\" \\\n  -F \"costs[1][cost]=15000\" \\\n  -F \"image=@/path/to/cake-image.jpg\""
+					},
+					"response": []
 				}
 			]
 		},
@@ -518,6 +750,14 @@
 							]
 						},
 						"description": "Delete a transaction and all its associated transaction details"
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
 					},
 					"response": []
 				}

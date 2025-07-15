@@ -19,6 +19,10 @@ func ErrXtremeCakeDelete(internalMsg string) {
 	xtremeres.Error(http.StatusInternalServerError, "Unable to delete cake", internalMsg, false, nil)
 }
 
+func ErrXtremeCakeParse(internalMsg string) {
+	xtremeres.Error(http.StatusInternalServerError, "Unable to parse cake data", internalMsg, false, nil)
+}
+
 // Ingredient errors
 func ErrXtremeIngredientGet(internalMsg string) {
 	xtremeres.Error(http.StatusNotFound, "Ingredient not found", internalMsg, false, nil)
