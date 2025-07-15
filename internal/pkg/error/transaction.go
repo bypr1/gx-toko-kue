@@ -25,3 +25,7 @@ func ErrXtremeTransactionDetailSave(internalMsg string) {
 func ErrXtremeTransactionDetailDelete(internalMsg string) {
 	xtremeres.Error(http.StatusInternalServerError, "Unable to delete transaction detail", internalMsg, false, nil)
 }
+
+func ErrXtremeTransactionExcelGenerate(internalMsg string) {
+	xtremeres.Error(http.StatusInternalServerError, "Unable to generate transaction Excel file", internalMsg, false, nil)
+}

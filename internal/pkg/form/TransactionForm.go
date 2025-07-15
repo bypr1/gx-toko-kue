@@ -9,11 +9,11 @@ import (
 )
 
 type TransactionForm struct {
-	TransactionDate string                      `json:"transactionDate" validate:"required"`
-	Details         []TransactionDetailCakeForm `json:"details" validate:"required,dive"`
+	TransactionDate string                `json:"transactionDate" validate:"required"`
+	Cakes           []TransactionCakeForm `json:"cakes" validate:"required,dive"`
 }
 
-type TransactionDetailCakeForm struct {
+type TransactionCakeForm struct {
 	CakeID   uint `json:"cakeId" validate:"required,gt=0"`
 	Quantity int  `json:"quantity" validate:"required,gt=0"`
 }

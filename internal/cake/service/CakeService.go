@@ -6,9 +6,12 @@ import (
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
 	"service/internal/pkg/constant"
+	errorpkg "service/internal/pkg/error"
 	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 	"service/internal/pkg/parser"
+
+	xtremefs "github.com/globalxtreme/go-core/v2/filesystem"
 
 	"gorm.io/gorm"
 )
@@ -33,7 +36,7 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.repository = repository.NewCakeRepository(tx)
 
-		cake = srv.repository.Store(form, srv.calculateSellPrice(form))
+		cake = srv.repository.Store(form, srv.calculateSellPrice(form), srv.uploadFile(form))
 		recipes := srv.repository.AddRecipes(cake, form.Ingredients)
 		costs := srv.repository.AddCosts(cake, form.Costs)
 
@@ -61,7 +64,7 @@ func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
 			SetParser(&parser.CakeParser{Object: cake}).
 			SetOldProperty(constant.ACTION_UPDATE)
 
-		cake = srv.repository.Update(cake, form, srv.calculateSellPrice(form))
+		cake = srv.repository.Update(cake, form, srv.calculateSellPrice(form), srv.uploadFile(form))
 		recipes := srv.repository.UpdateRecipes(cake, form.Ingredients)
 		costs := srv.repository.UpdateCosts(cake, form.Costs)
 
@@ -124,4 +127,16 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	}
 
 	return sellPrice
+}
+
+func (srv *cakeService) uploadFile(form form.CakeForm) string {
+	uploader := xtremefs.Uploader{Path: constant.PathImageCake(), IsPublic: true}
+	filePath, err := uploader.MoveFile(form.Request, "image")
+	if err != nil {
+		errorpkg.ErrXtremeCakeCostSave("Unable to upload file: " + err.Error())
+	}
+
+	storage := xtremefs.Storage{IsPublic: uploader.IsPublic}
+
+	return storage.GetFullPathURL(filePath.(string))
 }

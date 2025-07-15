@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	cakeRepository "service/internal/cake/repository"
 	"service/internal/pkg/form"
 	"service/internal/pkg/parser"
 	transactionRepository "service/internal/transaction/repository"
@@ -23,14 +24,11 @@ func (TransactionHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (TransactionHandler) Detail(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
 	repo := transactionRepository.NewTransactionRepository()
-	transaction := repo.FirstById(id, repo.WithDetails)
+	transaction := repo.FirstById(mux.Vars(r)["id"], repo.PreloadCakes)
 
 	transactionParser := parser.TransactionParser{Object: transaction}
-	res := xtremeres.Response{Object: transactionParser.Brief()}
+	res := xtremeres.Response{Object: transactionParser.First()}
 	res.Success(w)
 }
 
@@ -39,37 +37,41 @@ func (TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	transactionForm.APIParse(r)
 	transactionForm.Validate()
 
-	service := transactionService.NewTransactionService()
+	service := transactionService.NewTransactionService().
+		SetCakeRepository(cakeRepository.NewCakeRepository())
 	transaction := service.Create(transactionForm)
 
 	transactionParser := parser.TransactionParser{Object: transaction}
-	res := xtremeres.Response{Object: transactionParser.Brief()}
+	res := xtremeres.Response{Object: transactionParser.First()}
 	res.Success(w)
 }
 
 func (TransactionHandler) Update(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
 	var transactionForm form.TransactionForm
 	transactionForm.APIParse(r)
 	transactionForm.Validate()
 
-	service := transactionService.NewTransactionService()
-	transaction := service.Update(transactionForm, id)
+	service := transactionService.NewTransactionService().
+		SetCakeRepository(cakeRepository.NewCakeRepository())
+	transaction := service.Update(transactionForm, mux.Vars(r)["id"])
 
 	transactionParser := parser.TransactionParser{Object: transaction}
-	res := xtremeres.Response{Object: transactionParser.Brief()}
+	res := xtremeres.Response{Object: transactionParser.First()}
 	res.Success(w)
 }
 
 func (TransactionHandler) Delete(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
 	service := transactionService.NewTransactionService()
-	service.Delete(id)
+	service.Delete(mux.Vars(r)["id"])
 
 	res := xtremeres.Response{}
+	res.Success(w)
+}
+
+func (TransactionHandler) DownloadExcel(w http.ResponseWriter, r *http.Request) {
+	service := transactionService.NewTransactionService()
+	filename := service.DownloadExcel(r.URL.Query())
+
+	res := xtremeres.Response{Object: filename}
 	res.Success(w)
 }

@@ -28,7 +28,17 @@ flowchart TD
 - Produksi kue berdasarkan bahan baku yang tersedia dan ongkos yang telah ditentukan (update stok & harga jualnya juga).
 
 ### Struktur Data 
-- `Kue`: Struktur data untuk menyimpan informasi kue, termasuk ID kue, nama, deskripsi, margin(%), dan harga jual.
-- `BahanBaku`: Struktur data untuk menyimpan informasi bahan baku, termasuk ID bahan, nama, deskripsi, harga per unit, dan unit.
-- `Resep`: Struktur data untuk menyimpan informasi resep kue, termasuk ID resep, ID kue, dan daftar bahan baku beserta takarannya.
-- `Ongkos`: Struktur data untuk menyimpan informasi ongkos produksi per kue, termasuk ID kue, jenis ongkos dan ongkos.
+- `Cake`: Struktur data untuk menyimpan informasi kue, termasuk ID kue, nama, deskripsi, margin(%), dan harga jual.
+- `CakeComponentIngredient`: Struktur data untuk menyimpan informasi bahan baku, termasuk ID bahan, nama, deskripsi, harga per unit, dan unit.
+- `CakeRecipeIngredient`: Struktur data untuk menyimpan informasi resep kue, termasuk ID resep, ID kue, dan daftar bahan baku beserta takarannya.
+- `CakeCost`: Struktur data untuk menyimpan informasi ongkos produksi per kue, termasuk ID kue, jenis ongkos dan ongkos.
+
+#### Pengembangan Berikutnya
+
+Menambahkan fitur transaksi penjualan kue, yang mencakup:
+- Input data penjualan ID Transaksi, jumlah kue, total harga, dan tanggal penjualan.
+- Input detail penjualan, termasuk ID kue, jumlah yang terjual, dan harga jual per unit.
+
+*Struktur data untuk transaksi penjualan:*
+- `Transaction`: Struktur data untuk menyimpan informasi transaksi penjualan, termasuk ID transaksi, tanggal, dan total harga.
+- `TransactionDetailCake`: Struktur data untuk menyimpan detail penjualan, termasuk ID transaksi, ID kue, jumlah yang terjual, dan harga jual per unit.

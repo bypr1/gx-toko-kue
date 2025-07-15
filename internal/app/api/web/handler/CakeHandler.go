@@ -21,43 +21,43 @@ func (CakeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	cakes, pagination, _ := repo.Paginate(r.URL.Query())
 
 	psr := cakeparser.CakeParser{Array: cakes}
-	res := xtremeres.Response{Array: psr.Get(), Pagination: &pagination}
+	res := xtremeres.Response{Array: psr.Briefs(), Pagination: &pagination}
 	res.Success(w)
 }
 
 func (CakeHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	repo := repository.NewCakeRepository()
 
-	cake := repo.FirstById(mux.Vars(r)["id"], repo.WithRecipesAndCosts)
+	cake := repo.FirstById(mux.Vars(r)["id"], repo.PreloadRecipesAndCosts)
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.Brief()}
+	res := xtremeres.Response{Object: psr.First()}
 	res.Success(w)
 }
 
 func (CakeHandler) Create(w http.ResponseWriter, r *http.Request) {
-	form := form.CakeForm{}
-	form.APIParse(r)
+	var form form.CakeForm
+	form.FormParse(r)
 	form.Validate()
 
 	srv := service.NewCakeService()
 	cake := srv.Create(form)
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.Brief()}
+	res := xtremeres.Response{Object: psr.First()}
 	res.Success(w)
 }
 
 func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
-	form := form.CakeForm{}
-	form.APIParse(r)
+	var form form.CakeForm
+	form.FormParse(r)
 	form.Validate()
 
 	srv := service.NewCakeService()
 	cake := srv.Update(form, mux.Vars(r)["id"])
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.Brief()}
+	res := xtremeres.Response{Object: psr.First()}
 	res.Success(w)
 }
 

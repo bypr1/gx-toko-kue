@@ -62,5 +62,5 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.PersistentFlags().BoolVar(&xtremepkg.DevMode, "dev", false, "Set for development mode")
+	rootCmd.PersistentFlags().BoolVar(&xtremepkg.DevMode, "dev", true, "Set for development mode")
 }
