@@ -37,8 +37,8 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 		srv.repository = repository.NewCakeRepository(tx)
 
 		cake = srv.repository.Store(form, srv.calculateSellPrice(form), srv.uploadFile(form))
-		recipes := srv.repository.AddRecipes(cake, form.Ingredients)
-		costs := srv.repository.AddCosts(cake, form.Costs)
+		recipes := srv.repository.SaveRecipes(cake, form.Ingredients)
+		costs := srv.repository.SaveCosts(cake, form.Costs)
 
 		cake.Recipes = append(cake.Recipes, recipes...)
 		cake.Costs = append(cake.Costs, costs...)
@@ -65,8 +65,8 @@ func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
 			SetOldProperty(constant.ACTION_UPDATE)
 
 		cake = srv.repository.Update(cake, form, srv.calculateSellPrice(form), srv.uploadFile(form))
-		recipes := srv.repository.UpdateRecipes(cake, form.Ingredients)
-		costs := srv.repository.UpdateCosts(cake, form.Costs)
+		recipes := srv.repository.SaveRecipes(cake, form.Ingredients)
+		costs := srv.repository.SaveCosts(cake, form.Costs)
 
 		cake.Recipes = append(cake.Recipes, recipes...)
 		cake.Costs = append(cake.Costs, costs...)

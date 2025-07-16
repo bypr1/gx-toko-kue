@@ -21,14 +21,18 @@ type CakeForm struct {
 }
 
 type CakeCompIngredientForm struct {
+	ID           uint    `json:"id"`
 	IngredientID uint    `json:"ingredientId" validate:"required,gt=0"`
 	Amount       float64 `json:"amount" validate:"required,gte=0"`
 	Unit         string  `json:"unit" validate:"required,max=50"`
+	Deleted      bool    `json:"deleted"`
 }
 
 type CakeCompCostForm struct {
+	ID       uint    `json:"id"`
 	CostType string  `json:"type" validate:"required,max=100"`
 	Cost     float64 `json:"cost" validate:"required,gte=0"`
+	Deleted  bool    `json:"deleted"`
 }
 
 func (f *CakeForm) Validate() {

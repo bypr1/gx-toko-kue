@@ -4,7 +4,7 @@ import (
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"
 )
 
-type TransactionDetailCake struct {
+type TransactionCake struct {
 	xtrememodel.BaseModel
 	TransactionID uint        `gorm:"column:transactionId;not null"`
 	CakeID        uint        `gorm:"column:cakeId;not null"`
@@ -15,10 +15,10 @@ type TransactionDetailCake struct {
 	Cake          Cake        `gorm:"belongs_to:cakes;foreignKey:CakeID"`
 }
 
-func (TransactionDetailCake) TableName() string {
+func (TransactionCake) TableName() string {
 	return "transaction_detail_cakes"
 }
 
-func (td TransactionDetailCake) SetReference() uint {
+func (td TransactionCake) SetReference() uint {
 	return td.BaseModel.ID
 }

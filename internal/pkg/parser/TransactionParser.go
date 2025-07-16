@@ -37,7 +37,7 @@ func (parser TransactionParser) First() interface{} {
 	transactionObj := parser.Object
 	var cakes []interface{}
 	for _, cake := range transactionObj.Cakes {
-		cakes = append(cakes, TransactionDetailCakeParser{Object: cake}.First())
+		cakes = append(cakes, TransactionCakeParser{Object: cake}.First())
 	}
 	return map[string]interface{}{
 		"id":              transactionObj.ID,

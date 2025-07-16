@@ -18,11 +18,11 @@ func ErrXtremeTransactionDelete(internalMsg string) {
 	xtremeres.Error(http.StatusInternalServerError, "Unable to delete transaction", internalMsg, false, nil)
 }
 
-func ErrXtremeTransactionDetailSave(internalMsg string) {
+func ErrXtremeTransactionCakeSave(internalMsg string) {
 	xtremeres.Error(http.StatusInternalServerError, "Unable to save transaction detail", internalMsg, false, nil)
 }
 
-func ErrXtremeTransactionDetailDelete(internalMsg string) {
+func ErrXtremeTransactionCakeDelete(internalMsg string) {
 	xtremeres.Error(http.StatusInternalServerError, "Unable to delete transaction detail", internalMsg, false, nil)
 }
 
