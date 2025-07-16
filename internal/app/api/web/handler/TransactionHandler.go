@@ -37,8 +37,8 @@ func (TransactionHandler) Create(w http.ResponseWriter, r *http.Request) {
 	transactionForm.APIParse(r)
 	transactionForm.Validate()
 
-	service := transactionService.NewTransactionService().
-		SetCakeRepository(cakeRepository.NewCakeRepository())
+	service := transactionService.NewTransactionService()
+	service.SetCakeRepository(cakeRepository.NewCakeRepository())
 	transaction := service.Create(transactionForm)
 
 	transactionParser := parser.TransactionParser{Object: transaction}
@@ -51,8 +51,8 @@ func (TransactionHandler) Update(w http.ResponseWriter, r *http.Request) {
 	transactionForm.APIParse(r)
 	transactionForm.Validate()
 
-	service := transactionService.NewTransactionService().
-		SetCakeRepository(cakeRepository.NewCakeRepository())
+	service := transactionService.NewTransactionService()
+	service.SetCakeRepository(cakeRepository.NewCakeRepository())
 	transaction := service.Update(transactionForm, mux.Vars(r)["id"])
 
 	transactionParser := parser.TransactionParser{Object: transaction}
@@ -68,9 +68,9 @@ func (TransactionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	res.Success(w)
 }
 
-func (TransactionHandler) DownloadExcel(w http.ResponseWriter, r *http.Request) {
+func (TransactionHandler) ReportExcel(w http.ResponseWriter, r *http.Request) {
 	service := transactionService.NewTransactionService()
-	filename := service.DownloadExcel(r.URL.Query())
+	filename := service.ReportExcel(r.URL.Query())
 
 	res := xtremeres.Response{Object: filename}
 	res.Success(w)

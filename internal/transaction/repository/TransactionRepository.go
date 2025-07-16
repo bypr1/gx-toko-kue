@@ -8,6 +8,7 @@ import (
 	errorpkg "service/internal/pkg/error"
 	formpkg "service/internal/pkg/form"
 	"service/internal/pkg/model"
+	"service/internal/transaction/excel"
 
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"
 	"gorm.io/gorm"
@@ -19,15 +20,13 @@ type TransactionRepository interface {
 	core.PaginateRepository[model.Transaction]
 	core.FirstIdRepository[model.Transaction]
 	core.FindRepository[model.Transaction]
-
-	FindForReport(parameter url.Values) []model.TransactionReport
+	FindForReport(parameter url.Values) []excel.TransactionReport
 
 	Store(form formpkg.TransactionForm, totalAmount float64) model.Transaction
 	Delete(transaction model.Transaction)
 	Update(transaction model.Transaction, form formpkg.TransactionForm, totalAmount float64) model.Transaction
 
-	AddCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
-	UpdateCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake
+	SaveCakes(transaction model.Transaction, cakeForm []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake
 	DeleteCakes(transaction model.Transaction)
 
 	PreloadCakes(query *gorm.DB) *gorm.DB
@@ -51,6 +50,14 @@ type transactionRepository struct {
 func (repo *transactionRepository) SetTransaction(tx *gorm.DB) {
 	repo.transaction = tx
 }
+
+// -- Preload necessary relations for the model ---
+
+func (repo *transactionRepository) PreloadCakes(query *gorm.DB) *gorm.DB {
+	return query.Preload("Cakes.Cake")
+}
+
+// -- Public operations that interact with the database ---
 
 func (repo *transactionRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Transaction {
 	var transaction model.Transaction
@@ -90,26 +97,26 @@ func (repo *transactionRepository) Find(parameter url.Values) []model.Transactio
 	return transactions
 }
 
-func (repo *transactionRepository) FindForReport(parameter url.Values) []model.TransactionReport {
+func (repo *transactionRepository) FindForReport(parameter url.Values) []excel.TransactionReport {
 	fromDate, toDate := core.SetDateRange(parameter)
 
 	query := repo.transaction.
 		Select(`transactions.*, 
-                details."totalAmount" as "totalAmount", 
-                details."totalCakes" as "totalCakes"`).
+                cakeItems."totalAmount" as "totalAmount", 
+                cakeItems."totalCakes" as "totalCakes"`).
 		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate).
 		Joins(fmt.Sprintf(`
 			INNER JOIN (
 				SELECT "transactionId", SUM("subTotal") AS "totalAmount", COUNT("id") AS "totalCakes"
 				FROM %s
 				GROUP BY "transactionId"
-			) AS "details" ON %s."id" = "details"."transactionId"
+			) AS "cakeItems" ON %s."id" = "cakeItems"."transactionId"
 		`,
-			model.TransactionDetailCake{}.TableName(),
+			model.TransactionCake{}.TableName(),
 			model.Transaction{}.TableName(),
-		)).Preload("Details.Cake")
+		)).Preload("Cakes.Cake")
 
-	var transactions []model.TransactionReport
+	var transactions []excel.TransactionReport
 	err := query.Order("id DESC").Find(&transactions).Error
 	if err != nil {
 		errorpkg.ErrXtremeTransactionGet(err.Error())
@@ -172,47 +179,97 @@ func (repo *transactionRepository) Delete(transaction model.Transaction) {
 	}
 }
 
-func (repo *transactionRepository) addDetail(transaction model.Transaction, detail formpkg.TransactionCakeForm, cake model.Cake) model.TransactionDetailCake {
-	subTotal := float64(detail.Quantity) * cake.SellPrice
-
-	transactionDetail := model.TransactionDetailCake{
-		TransactionID: transaction.ID,
-		CakeID:        detail.CakeID,
-		Quantity:      detail.Quantity,
-		UnitPrice:     cake.SellPrice,
-		SubTotal:      subTotal,
-	}
-
-	err := repo.transaction.Create(&transactionDetail).Error
-	if err != nil {
-		errorpkg.ErrXtremeTransactionDetailSave(err.Error())
-	}
-
-	return transactionDetail
-}
-
-func (repo *transactionRepository) AddCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
-	var transactionDetails []model.TransactionDetailCake
-	for _, detail := range details {
-		cake := cakes[detail.CakeID]
-		transactionDetail := repo.addDetail(transaction, detail, cake)
-		transactionDetails = append(transactionDetails, transactionDetail)
-	}
-	return transactionDetails
-}
-
-func (repo *transactionRepository) UpdateCakes(transaction model.Transaction, details []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionDetailCake {
-	repo.DeleteCakes(transaction)
-	return repo.AddCakes(transaction, details, cakes)
-}
-
 func (repo *transactionRepository) DeleteCakes(transaction model.Transaction) {
-	err := repo.transaction.Where("\"transactionId\" = ?", transaction.ID).Delete(&model.TransactionDetailCake{}).Error
+	err := repo.transaction.Where("\"transactionId\" = ?", transaction.ID).Delete(&model.TransactionCake{}).Error
 	if err != nil {
-		errorpkg.ErrXtremeTransactionDetailDelete(err.Error())
+		errorpkg.ErrXtremeTransactionCakeDelete(err.Error())
 	}
 }
 
-func (repo *transactionRepository) PreloadCakes(query *gorm.DB) *gorm.DB {
-	return query.Preload("Cakes.Cake")
+func (repo *transactionRepository) SaveCakes(transaction model.Transaction, cakeForm []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake {
+	var toDelete []uint
+	var toUpdate []model.TransactionCake
+	var toCreate []model.TransactionCake
+
+	existingCakes := repo.getExistingCakes(transaction)
+	existingMap := make(map[uint]model.TransactionCake)
+	for _, existing := range existingCakes {
+		existingMap[existing.ID] = existing
+	}
+
+	for _, cakeForm := range cakeForm {
+		if cakeForm.Deleted {
+			toDelete = append(toDelete, cakeForm.ID)
+		} else {
+			cake := cakes[cakeForm.CakeID]
+			subTotal := float64(cakeForm.Quantity) * cake.SellPrice
+
+			transactionCake := model.TransactionCake{
+				TransactionID: transaction.ID,
+				CakeID:        cakeForm.CakeID,
+				Quantity:      cakeForm.Quantity,
+				UnitPrice:     cake.SellPrice,
+				SubTotal:      subTotal,
+			}
+
+			if cakeForm.ID > 0 { // Update existing
+				transactionCake.ID = cakeForm.ID
+				toUpdate = append(toUpdate, transactionCake)
+			} else { // Create new
+				toCreate = append(toCreate, transactionCake)
+			}
+		}
+	}
+
+	if err := repo.batchDeleteCakes(toDelete); err != nil {
+		errorpkg.ErrXtremeTransactionCakeSave(err.Error())
+	}
+
+	if err := repo.batchUpdateCakes(toUpdate); err != nil {
+		errorpkg.ErrXtremeTransactionCakeSave(err.Error())
+	}
+
+	if err := repo.batchCreateCakes(toCreate); err != nil {
+		errorpkg.ErrXtremeTransactionCakeSave(err.Error())
+	}
+
+	return append(toUpdate, toCreate...)
+}
+
+// -- Private helper sections for the repository ---
+
+func (repo *transactionRepository) getExistingCakes(transaction model.Transaction) []model.TransactionCake {
+	var cakes []model.TransactionCake
+	repo.transaction.Where("\"transactionId\" = ?", transaction.ID).Find(&cakes)
+	return cakes
+}
+
+func (repo *transactionRepository) batchDeleteCakes(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.TransactionCake{}).Error
+}
+
+func (repo *transactionRepository) batchUpdateCakes(cakes []model.TransactionCake) error {
+	if len(cakes) == 0 {
+		return nil
+	}
+
+	for _, cake := range cakes {
+		err := repo.transaction.Save(&cake).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (repo *transactionRepository) batchCreateCakes(cakes []model.TransactionCake) error {
+	if len(cakes) == 0 {
+		return nil
+	}
+
+	return repo.transaction.Create(&cakes).Error
 }

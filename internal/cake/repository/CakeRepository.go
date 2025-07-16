@@ -14,6 +14,7 @@ import (
 
 type CakeRepository interface {
 	core.TransactionRepository
+	PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB
 
 	core.PaginateRepository[model.Cake]
 	core.FirstIdRepository[model.Cake]
@@ -23,15 +24,11 @@ type CakeRepository interface {
 	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake
 	FindByIds(ids []any) []model.Cake
 
-	AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
-	UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
+	SaveRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
+	SaveCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
+
 	DeleteRecipes(cake model.Cake)
-
-	AddCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
-	UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
 	DeleteCosts(cake model.Cake)
-
-	PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB
 }
 
 func NewCakeRepository(args ...*gorm.DB) CakeRepository {
@@ -52,6 +49,14 @@ type cakeRepository struct {
 func (repo *cakeRepository) SetTransaction(tx *gorm.DB) {
 	repo.transaction = tx
 }
+
+// -- Preload necessary relations for the model ---
+
+func (repo *cakeRepository) PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB {
+	return query.Preload("Recipes.Ingredient").Preload("Costs")
+}
+
+// -- Public operations that interact with the database ---
 
 func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Cake {
 	var cake model.Cake
@@ -140,34 +145,95 @@ func (repo *cakeRepository) Delete(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) addRecipe(cake model.Cake, recipe formpkg.CakeCompIngredientForm) model.CakeRecipeIngredient {
-	cakeRecipe := model.CakeRecipeIngredient{
-		CakeID:       cake.ID,
-		IngredientID: recipe.IngredientID,
-		Amount:       recipe.Amount,
-		Unit:         recipe.Unit,
+func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
+	var toDelete []uint
+	var toUpdate []model.CakeRecipeIngredient
+	var toCreate []model.CakeRecipeIngredient
+
+	existingRecipes := repo.getExistingRecipes(cake)
+	existingMap := make(map[uint]model.CakeRecipeIngredient)
+	for _, existing := range existingRecipes {
+		existingMap[existing.ID] = existing
 	}
 
-	err := repo.transaction.Create(&cakeRecipe).Error
-	if err != nil {
+	for _, recipeForm := range recipeForm {
+		if recipeForm.Deleted {
+			toDelete = append(toDelete, recipeForm.ID)
+		} else {
+			cakeRecipe := model.CakeRecipeIngredient{
+				CakeID:       cake.ID,
+				IngredientID: recipeForm.IngredientID,
+				Amount:       recipeForm.Amount,
+				Unit:         recipeForm.Unit,
+			}
+
+			if recipeForm.ID > 0 { // Update existing
+				cakeRecipe.ID = recipeForm.ID
+				toUpdate = append(toUpdate, cakeRecipe)
+			} else { // Create new
+				toCreate = append(toCreate, cakeRecipe)
+			}
+		}
+	}
+
+	if err := repo.batchDeleteRecipes(toDelete); err != nil {
+		errorpkg.ErrXtremeCakeRecipeDelete(err.Error())
+	}
+
+	if err := repo.batchUpdateRecipes(toUpdate); err != nil {
 		errorpkg.ErrXtremeCakeRecipeSave(err.Error())
 	}
 
-	return cakeRecipe
-}
-
-func (repo *cakeRepository) AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
-	var cakeRecipes []model.CakeRecipeIngredient
-	for _, recipe := range recipes {
-		cakeRecipe := repo.addRecipe(cake, recipe)
-		cakeRecipes = append(cakeRecipes, cakeRecipe)
+	if err := repo.batchCreateRecipes(toCreate); err != nil {
+		errorpkg.ErrXtremeCakeRecipeSave(err.Error())
 	}
-	return cakeRecipes
+
+	return append(toUpdate, toCreate...)
 }
 
-func (repo *cakeRepository) UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
-	repo.DeleteRecipes(cake)
-	return repo.AddRecipes(cake, recipes)
+func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeCompCostForm) []model.CakeCost {
+	var toDelete []uint
+	var toUpdate []model.CakeCost
+	var toCreate []model.CakeCost
+
+	existingCosts := repo.getExistingCosts(cake)
+	existingMap := make(map[uint]model.CakeCost)
+	for _, existing := range existingCosts {
+		existingMap[existing.ID] = existing
+	}
+
+	for _, costForm := range costForm {
+		if costForm.Deleted {
+			toDelete = append(toDelete, costForm.ID)
+		} else {
+			cakeCost := model.CakeCost{
+				CakeID: cake.ID,
+				Type:   costForm.CostType,
+				Cost:   costForm.Cost,
+			}
+
+			if costForm.ID > 0 { // Update existing
+				cakeCost.ID = costForm.ID
+				toUpdate = append(toUpdate, cakeCost)
+			} else { // Create new
+				toCreate = append(toCreate, cakeCost)
+			}
+		}
+	}
+
+	if err := repo.batchDeleteCosts(toDelete); err != nil {
+		errorpkg.ErrXtremeCakeCostDelete(err.Error())
+	}
+
+	if err := repo.batchUpdateCosts(toUpdate); err != nil {
+		errorpkg.ErrXtremeCakeCostSave(err.Error())
+	}
+
+	if err := repo.batchCreateCosts(toCreate); err != nil {
+		errorpkg.ErrXtremeCakeCostSave(err.Error())
+	}
+
+	return append(toUpdate, toCreate...)
 }
 
 func (repo *cakeRepository) DeleteRecipes(cake model.Cake) {
@@ -177,36 +243,6 @@ func (repo *cakeRepository) DeleteRecipes(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) addCost(cake model.Cake, cost formpkg.CakeCompCostForm) model.CakeCost {
-	cakeCost := model.CakeCost{
-		CakeID: cake.ID,
-		Type:   cost.CostType,
-		Cost:   cost.Cost,
-	}
-
-	err := repo.transaction.Create(&cakeCost).Error
-	if err != nil {
-		errorpkg.ErrXtremeCakeCostSave(err.Error())
-	}
-
-	return cakeCost
-}
-
-func (repo *cakeRepository) AddCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
-	var cakeCosts []model.CakeCost
-	for _, cost := range costs {
-		cakeCost := repo.addCost(cake, cost)
-		cakeCosts = append(cakeCosts, cakeCost)
-	}
-	return cakeCosts
-}
-
-func (repo *cakeRepository) UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
-	// Delete existing and replace with new costs
-	repo.DeleteCosts(cake)
-	return repo.AddCosts(cake, costs)
-}
-
 func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
 	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeCost{}).Error
 	if err != nil {
@@ -214,6 +250,76 @@ func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB {
-	return query.Preload("Recipes.Ingredient").Preload("Costs")
+// -- Private helper sections for the repository ---
+
+func (repo *cakeRepository) getExistingRecipes(cake model.Cake) []model.CakeRecipeIngredient {
+	var recipes []model.CakeRecipeIngredient
+	repo.transaction.Where("\"cakeId\" = ?", cake.ID).Find(&recipes)
+	return recipes
+}
+
+func (repo *cakeRepository) batchDeleteRecipes(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.CakeRecipeIngredient{}).Error
+}
+
+func (repo *cakeRepository) batchUpdateRecipes(recipes []model.CakeRecipeIngredient) error {
+	if len(recipes) == 0 {
+		return nil
+	}
+
+	for _, recipe := range recipes {
+		err := repo.transaction.Save(&recipe).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (repo *cakeRepository) batchCreateRecipes(recipes []model.CakeRecipeIngredient) error {
+	if len(recipes) == 0 {
+		return nil
+	}
+
+	return repo.transaction.Create(&recipes).Error
+}
+
+func (repo *cakeRepository) getExistingCosts(cake model.Cake) []model.CakeCost {
+	var costs []model.CakeCost
+	repo.transaction.Where("\"cakeId\" = ?", cake.ID).Find(&costs)
+	return costs
+}
+
+func (repo *cakeRepository) batchDeleteCosts(ids []uint) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.CakeCost{}).Error
+}
+
+func (repo *cakeRepository) batchUpdateCosts(costs []model.CakeCost) error {
+	if len(costs) == 0 {
+		return nil
+	}
+
+	for _, cost := range costs {
+		err := repo.transaction.Save(&cost).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (repo *cakeRepository) batchCreateCosts(costs []model.CakeCost) error {
+	if len(costs) == 0 {
+		return nil
+	}
+
+	return repo.transaction.Create(&costs).Error
 }

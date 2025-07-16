@@ -11,8 +11,13 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
+type TransactionReport struct {
+	model.Transaction
+	TotalCakes int `gorm:"column:totalCakes;not null"`
+}
+
 type TransactionExcel struct {
-	Transactions []model.TransactionReport
+	Transactions []TransactionReport
 }
 
 func (ex TransactionExcel) Generate() (string, error) {

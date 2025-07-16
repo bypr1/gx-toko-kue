@@ -41,4 +41,4 @@ Menambahkan fitur transaksi penjualan kue, yang mencakup:
 
 *Struktur data untuk transaksi penjualan:*
 - `Transaction`: Struktur data untuk menyimpan informasi transaksi penjualan, termasuk ID transaksi, tanggal, dan total harga.
-- `TransactionDetailCake`: Struktur data untuk menyimpan detail penjualan, termasuk ID transaksi, ID kue, jumlah yang terjual, dan harga jual per unit.
+- `TransactionCake`: Struktur data untuk menyimpan detail penjualan, termasuk ID transaksi, ID kue, jumlah yang terjual, dan harga jual per unit.

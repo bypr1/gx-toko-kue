@@ -19,7 +19,7 @@ func (Transaction_1752308467995244) Tables() []xtremedb.Table {
 
 	return []xtremedb.Table{
 		{Connection: config.PgSQL, CreateTable: model.Transaction{}, Owner: owner},
-		{Connection: config.PgSQL, CreateTable: model.TransactionDetailCake{}, Owner: owner},
+		{Connection: config.PgSQL, CreateTable: model.TransactionCake{}, Owner: owner},
 	}
 }
 
