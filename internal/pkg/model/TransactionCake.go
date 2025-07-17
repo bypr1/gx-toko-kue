@@ -12,12 +12,12 @@ type TransactionCake struct {
 	Price         float64 `gorm:"column:unitPrice;not null"`
 	SubTotal      float64 `gorm:"column:subTotal;not null"`
 
-	Transaction Transaction `gorm:"belongs_to:transactions;foreignKey:TransactionID"`
-	Cake        Cake        `gorm:"belongs_to:cakes;foreignKey:CakeID"`
+	Transaction Transaction `gorm:"belongs_to:transactions;foreignKey:TransactionId"`
+	Cake        Cake        `gorm:"belongs_to:cakes;foreignKey:CakeId"`
 }
 
 func (TransactionCake) TableName() string {
-	return "transaction_detail_cakes"
+	return "transaction_cakes"
 }
 
 func (td TransactionCake) SetReference() uint {

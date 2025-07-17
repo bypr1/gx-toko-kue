@@ -7,7 +7,7 @@ import (
 type CakeCost struct {
 	xtrememodel.BaseModel
 	CakeId uint    `gorm:"column:cakeId;not null"`
-	TypeId int     `gorm:"column:type;type:varchar(100);not null"`
+	TypeId int     `gorm:"column:typeId;not null"`
 	Cost   float64 `gorm:"column:cost;not null"`
 }
 
