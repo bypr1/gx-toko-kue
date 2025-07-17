@@ -32,6 +32,7 @@ type cakeService struct {
 
 func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 	var cake model.Cake
+	srv.prepare()
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.repository.SetTransaction(tx)
