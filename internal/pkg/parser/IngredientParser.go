@@ -3,8 +3,6 @@ package parser
 import (
 	"service/internal/pkg/constant"
 	"service/internal/pkg/model"
-
-	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
 )
 
 type IngredientParser struct {
@@ -43,6 +41,6 @@ func (parser IngredientParser) First() interface{} {
 		"name":        ingredient.Name,
 		"description": ingredient.Description,
 		"price":       ingredient.Price,
-		"unit":        constant.CakeIngredientUnitOfMeasure{}.Display(xtremepkg.ToInt(ingredient.UnitId)),
+		"unit":        constant.CakeIngredientUnitOfMeasure{}.Display(ingredient.UnitId),
 	}
 }

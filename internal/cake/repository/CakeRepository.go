@@ -106,7 +106,7 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64, imag
 		Description: form.Description,
 		Margin:      form.Margin,
 		Price:       sellPrice,
-		Unit:        form.Unit,
+		UnitId:      form.UnitId,
 		Stock:       form.Stock,
 		Image:       image,
 	}
@@ -124,7 +124,7 @@ func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellP
 	cake.Description = form.Description
 	cake.Margin = form.Margin
 	cake.Price = sellPrice
-	cake.Unit = form.Unit
+	cake.UnitId = form.UnitId
 	cake.Stock = form.Stock
 	cake.Image = image
 
@@ -143,7 +143,7 @@ func (repo *cakeRepository) Delete(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.CakeFormComponentIngredient) []model.CakeIngredient {
+func (repo *cakeRepository) SaveRecipes(cake model.Cake, form []formpkg.CakeFormComponentIngredient) []model.CakeIngredient {
 	var toDelete []uint
 	var toUpdate []model.CakeIngredient
 	var toCreate []model.CakeIngredient
@@ -154,19 +154,19 @@ func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.Ca
 		existingMap[existing.ID] = existing
 	}
 
-	for _, recipeForm := range recipeForm {
-		if recipeForm.Deleted {
-			toDelete = append(toDelete, recipeForm.ID)
+	for _, f := range form {
+		if f.Deleted {
+			toDelete = append(toDelete, f.ID)
 		} else {
 			cakeRecipe := model.CakeIngredient{
-				CakeID:       cake.ID,
-				IngredientID: recipeForm.IngredientID,
-				Amount:       recipeForm.Amount,
-				Unit:         recipeForm.UnitId,
+				CakeId:       cake.ID,
+				IngredientId: f.IngredientId,
+				Amount:       f.Amount,
+				UnitId:       f.UnitId,
 			}
 
-			if recipeForm.ID > 0 { // Update existing
-				cakeRecipe.ID = recipeForm.ID
+			if f.ID > 0 { // Update existing
+				cakeRecipe.ID = f.ID
 				toUpdate = append(toUpdate, cakeRecipe)
 			} else { // Create new
 				toCreate = append(toCreate, cakeRecipe)
@@ -189,7 +189,7 @@ func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.Ca
 	return append(toUpdate, toCreate...)
 }
 
-func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeFormComponentCost) []model.CakeCost {
+func (repo *cakeRepository) SaveCosts(cake model.Cake, form []formpkg.CakeFormComponentCost) []model.CakeCost {
 	var toDelete []uint
 	var toUpdate []model.CakeCost
 	var toCreate []model.CakeCost
@@ -200,18 +200,18 @@ func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeFo
 		existingMap[existing.ID] = existing
 	}
 
-	for _, costForm := range costForm {
-		if costForm.Deleted {
-			toDelete = append(toDelete, costForm.ID)
+	for _, f := range form {
+		if f.Deleted {
+			toDelete = append(toDelete, f.ID)
 		} else {
 			cakeCost := model.CakeCost{
-				CakeID: cake.ID,
-				Type:   costForm.CostTypeID,
-				Cost:   costForm.Cost,
+				CakeId: cake.ID,
+				TypeId: f.CostTypeId,
+				Cost:   f.Cost,
 			}
 
-			if costForm.ID > 0 { // Update existing
-				cakeCost.ID = costForm.ID
+			if f.ID > 0 { // Update existing
+				cakeCost.ID = f.ID
 				toUpdate = append(toUpdate, cakeCost)
 			} else { // Create new
 				toCreate = append(toCreate, cakeCost)

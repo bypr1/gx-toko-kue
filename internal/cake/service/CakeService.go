@@ -107,8 +107,8 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	var ingredientIDs []any
 	recipeQtys := make(map[uint]float64)
 	for _, recipe := range form.Ingredients {
-		ingredientIDs = append(ingredientIDs, recipe.IngredientID)
-		recipeQtys[recipe.IngredientID] = recipe.Amount
+		ingredientIDs = append(ingredientIDs, recipe.IngredientId)
+		recipeQtys[recipe.IngredientId] = recipe.Amount
 	}
 
 	ingredients := ingredientRepo.FindByIds(ingredientIDs)

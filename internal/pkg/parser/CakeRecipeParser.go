@@ -3,8 +3,6 @@ package parser
 import (
 	"service/internal/pkg/constant"
 	"service/internal/pkg/model"
-
-	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
 )
 
 type CakeRecipeParser struct {
@@ -25,11 +23,11 @@ func (parser CakeRecipeParser) First() interface{} {
 	return map[string]interface{}{
 		"id":     recipe.ID,
 		"amount": recipe.Amount,
-		"unit":   constant.CakeUnitOfMeasure{}.Display(xtremepkg.ToInt(recipe.Unit)),
+		"unit":   constant.CakeUnitOfMeasure{}.Display(recipe.UnitId),
 		"ingredient": map[string]interface{}{
-			"id":   recipe.IngredientID,
+			"id":   recipe.IngredientId,
 			"name": recipe.Ingredient.Name,
-			"unit": constant.CakeIngredientUnitOfMeasure{}.Display(xtremepkg.ToInt(recipe.Ingredient.UnitId)),
+			"unit": constant.CakeIngredientUnitOfMeasure{}.Display(recipe.Ingredient.UnitId),
 		},
 	}
 }
@@ -38,9 +36,9 @@ func (parser CakeRecipeParser) FirstWithoutIngredient() interface{} {
 	recipe := parser.Object
 	return map[string]interface{}{
 		"id":           recipe.ID,
-		"cakeId":       recipe.CakeID,
-		"ingredientId": recipe.IngredientID,
+		"cakeId":       recipe.CakeId,
+		"ingredientId": recipe.IngredientId,
 		"amount":       recipe.Amount,
-		"unit":         constant.CakeUnitOfMeasure{}.Display(xtremepkg.ToInt(recipe.Unit)),
+		"unit":         constant.CakeUnitOfMeasure{}.Display(recipe.UnitId),
 	}
 }

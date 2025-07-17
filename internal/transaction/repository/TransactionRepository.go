@@ -203,8 +203,8 @@ func (repo *transactionRepository) SaveCakes(transaction model.Transaction, cake
 			subTotal := float64(cakeForm.Quantity) * cake.Price
 
 			transactionCake := model.TransactionCake{
-				TransactionID: transaction.ID,
-				CakeID:        cakeForm.CakeID,
+				TransactionId: transaction.ID,
+				CakeId:        cakeForm.CakeID,
 				Quantity:      cakeForm.Quantity,
 				Price:         cake.Price,
 				SubTotal:      subTotal,
