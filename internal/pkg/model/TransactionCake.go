@@ -6,8 +6,8 @@ import (
 
 type TransactionCake struct {
 	xtrememodel.BaseModel
-	TransactionID uint    `gorm:"column:transactionId;not null"`
-	CakeID        uint    `gorm:"column:cakeId;not null"`
+	TransactionId uint    `gorm:"column:transactionId;not null"`
+	CakeId        uint    `gorm:"column:cakeId;not null"`
 	Quantity      int     `gorm:"column:quantity;not null"`
 	Price         float64 `gorm:"column:unitPrice;not null"`
 	SubTotal      float64 `gorm:"column:subTotal;not null"`

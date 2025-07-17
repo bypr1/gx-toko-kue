@@ -3,8 +3,6 @@ package parser
 import (
 	"service/internal/pkg/constant"
 	"service/internal/pkg/model"
-
-	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
 )
 
 type CakeCostParser struct {
@@ -24,7 +22,7 @@ func (parser CakeCostParser) First() interface{} {
 	cost := parser.Object
 	return map[string]interface{}{
 		"id":   cost.ID,
-		"type": constant.CakeCostType{}.Display(xtremepkg.ToInt(cost.Type)),
+		"type": constant.CakeCostType{}.Display(cost.TypeId),
 		"cost": cost.Cost,
 	}
 }

@@ -37,7 +37,7 @@ func (parser TransactionCakeParser) First() interface{} {
 	txCakeObj := parser.Object
 	return map[string]interface{}{
 		"id":            txCakeObj.ID,
-		"transactionId": txCakeObj.TransactionID,
+		"transactionId": txCakeObj.TransactionId,
 		"quantity":      txCakeObj.Quantity,
 		"price":         txCakeObj.Price,
 		"subTotal":      txCakeObj.SubTotal,
@@ -59,7 +59,7 @@ func (parser TransactionCakeParser) Brief() interface{} {
 	txCakeObj := parser.Object
 	return map[string]interface{}{
 		"id":        txCakeObj.ID,
-		"cakeId":    txCakeObj.CakeID,
+		"cakeId":    txCakeObj.CakeId,
 		"quantity":  txCakeObj.Quantity,
 		"price":     txCakeObj.Price,
 		"subTotal":  txCakeObj.SubTotal,

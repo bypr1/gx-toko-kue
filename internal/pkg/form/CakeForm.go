@@ -13,7 +13,7 @@ type CakeForm struct {
 	Name        string                        `json:"name" validate:"required,max=250"`
 	Description string                        `json:"description"`
 	Margin      float64                       `json:"margin" validate:"required,gte=0"`
-	Unit        string                        `json:"unit" validate:"max=50"`
+	UnitId      int                           `json:"unitId" validate:"max=50"`
 	Stock       int                           `json:"stock" validate:"gte=0"`
 	Ingredients []CakeFormComponentIngredient `json:"ingredients" validate:"required,dive"`
 	Costs       []CakeFormComponentCost       `json:"costs" validate:"required,dive"`
@@ -22,15 +22,15 @@ type CakeForm struct {
 
 type CakeFormComponentIngredient struct {
 	ID           uint    `json:"id"`
-	IngredientID uint    `json:"ingredientId" validate:"required,gt=0"`
+	IngredientId uint    `json:"ingredientId" validate:"required,gt=0"`
 	Amount       float64 `json:"amount" validate:"required,gte=0"`
-	UnitId       string  `json:"unitId" validate:"required,max=50"`
+	UnitId       int     `json:"unitId" validate:"required,max=50"`
 	Deleted      bool    `json:"deleted"`
 }
 
 type CakeFormComponentCost struct {
 	ID         uint    `json:"id"`
-	CostTypeID string  `json:"typeId" validate:"required,max=100"`
+	CostTypeId int     `json:"typeId" validate:"required,max=100"`
 	Cost       float64 `json:"cost" validate:"required,gte=0"`
 	Deleted    bool    `json:"deleted"`
 }
@@ -50,7 +50,7 @@ func (f *CakeForm) FormParse(r *http.Request) {
 	f.Name = formValue["name"][0]
 	f.Description = formValue["description"][0]
 	f.Margin = xtremepkg.ToFloat64(formValue["margin"][0])
-	f.Unit = formValue["unit"][0]
+	f.UnitId = xtremepkg.ToInt(formValue["unitId"][0])
 	f.Stock = xtremepkg.ToInt(formValue["stock"][0])
 
 	f.Ingredients = make([]CakeFormComponentIngredient, 0)
@@ -59,9 +59,9 @@ func (f *CakeForm) FormParse(r *http.Request) {
 		ingredientIDKey := fmt.Sprintf("ingredients[%d][ingredientId]", i)
 		if ingredientIDValues, exists := formValue[ingredientIDKey]; exists {
 			var compIngredient CakeFormComponentIngredient
-			compIngredient.IngredientID = uint(xtremepkg.ToInt(ingredientIDValues[0]))
+			compIngredient.IngredientId = uint(xtremepkg.ToInt(ingredientIDValues[0]))
 			compIngredient.Amount = xtremepkg.ToFloat64(formValue[fmt.Sprintf("ingredients[%d][amount]", i)][0])
-			compIngredient.UnitId = formValue[fmt.Sprintf("ingredients[%d][unit]", i)][0]
+			compIngredient.UnitId = xtremepkg.ToInt(formValue[fmt.Sprintf("ingredients[%d][unitId]", i)][0])
 
 			idKey := fmt.Sprintf("ingredients[%d][id]", i)
 			if idValues, exists := formValue[idKey]; exists && len(idValues) > 0 {
@@ -81,7 +81,7 @@ func (f *CakeForm) FormParse(r *http.Request) {
 		costTypeKey := fmt.Sprintf("costs[%d][type]", i)
 		if costTypeValues, exists := formValue[costTypeKey]; exists {
 			var compCost CakeFormComponentCost
-			compCost.CostTypeID = costTypeValues[0]
+			compCost.CostTypeId = xtremepkg.ToInt(costTypeValues[0])
 			compCost.Cost = xtremepkg.ToFloat64(formValue[fmt.Sprintf("costs[%d][cost]", i)][0])
 
 			idKey := fmt.Sprintf("costs[%d][id]", i)
