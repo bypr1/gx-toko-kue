@@ -33,7 +33,7 @@ func (CakeHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	cake := repo.FirstById(mux.Vars(r)["id"], repo.PreloadRecipesAndCosts)
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.First()}
+	res := xtremeres.Response{Object: psr.First(true)}
 	res.Success(w)
 }
 
@@ -46,7 +46,7 @@ func (CakeHandler) Create(w http.ResponseWriter, r *http.Request) {
 	cake := srv.Create(form)
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.First()}
+	res := xtremeres.Response{Object: psr.First(false)}
 	res.Success(w)
 }
 
@@ -59,7 +59,7 @@ func (CakeHandler) Update(w http.ResponseWriter, r *http.Request) {
 	cake := srv.Update(form, mux.Vars(r)["id"])
 
 	psr := cakeparser.CakeParser{Object: cake}
-	res := xtremeres.Response{Object: psr.First()}
+	res := xtremeres.Response{Object: psr.First(false)}
 	res.Success(w)
 }
 

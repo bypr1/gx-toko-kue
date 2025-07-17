@@ -21,13 +21,15 @@ func (parser CakeRecipeParser) Get() []interface{} {
 func (parser CakeRecipeParser) First() interface{} {
 	recipe := parser.Object
 	return map[string]interface{}{
-		"id":     recipe.ID,
-		"amount": recipe.Amount,
-		"unit":   constant.CakeUnitOfMeasure{}.Display(recipe.UnitId),
+		"id":       recipe.ID,
+		"amount":   recipe.Amount,
+		"unitId":   recipe.UnitId,
+		"unitName": constant.AllUnitOfMeasure{}.Display(recipe.UnitId),
 		"ingredient": map[string]interface{}{
-			"id":   recipe.IngredientId,
-			"name": recipe.Ingredient.Name,
-			"unit": constant.CakeIngredientUnitOfMeasure{}.Display(recipe.Ingredient.UnitId),
+			"id":       recipe.IngredientId,
+			"name":     recipe.Ingredient.Name,
+			"unitId":   recipe.Ingredient.UnitId,
+			"unitName": constant.AllUnitOfMeasure{}.Display(recipe.Ingredient.UnitId),
 		},
 	}
 }
@@ -39,6 +41,7 @@ func (parser CakeRecipeParser) FirstWithoutIngredient() interface{} {
 		"cakeId":       recipe.CakeId,
 		"ingredientId": recipe.IngredientId,
 		"amount":       recipe.Amount,
-		"unit":         constant.CakeUnitOfMeasure{}.Display(recipe.UnitId),
+		"unitId":       recipe.UnitId,
+		"unitName":     constant.AllUnitOfMeasure{}.Display(recipe.UnitId),
 	}
 }

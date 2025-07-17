@@ -40,8 +40,8 @@ func (srv *transactionService) SetCakeRepository(repo port.CakeRepository) {
 
 func (srv *transactionService) Create(form form.TransactionForm) model.Transaction {
 	var transaction model.Transaction
-
 	srv.prepare()
+
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.setRepositoriesWithTransaction(tx)
 

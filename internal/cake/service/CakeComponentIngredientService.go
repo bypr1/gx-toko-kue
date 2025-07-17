@@ -29,8 +29,8 @@ type cakeComponentIngredientService struct {
 
 func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredientForm) model.CakeComponentIngredient {
 	var ingredient model.CakeComponentIngredient
-
 	srv.prepare()
+
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		ingredient = srv.repository.Store(form)
 

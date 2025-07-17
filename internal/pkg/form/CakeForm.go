@@ -78,7 +78,7 @@ func (f *CakeForm) FormParse(r *http.Request) {
 	f.Costs = make([]CakeFormComponentCost, 0)
 	isLooping = true
 	for i := 0; isLooping; i++ {
-		costTypeKey := fmt.Sprintf("costs[%d][type]", i)
+		costTypeKey := fmt.Sprintf("costs[%d][typeId]", i)
 		if costTypeValues, exists := formValue[costTypeKey]; exists {
 			var compCost CakeFormComponentCost
 			compCost.CostTypeId = xtremepkg.ToInt(costTypeValues[0])
