@@ -28,8 +28,6 @@ func NewCakeComponentIngredientRepository(args ...*gorm.DB) CakeComponentIngredi
 	repository := cakeComponentIngredientRepository{}
 	if len(args) > 0 {
 		repository.transaction = args[0]
-	} else {
-		repository.transaction = config.PgSQL // Default to global config
 	}
 
 	return &repository
@@ -46,7 +44,7 @@ func (repo *cakeComponentIngredientRepository) SetTransaction(tx *gorm.DB) {
 func (repo *cakeComponentIngredientRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.CakeComponentIngredient {
 	var ingredient model.CakeComponentIngredient
 
-	query := repo.transaction
+	query := config.PgSQL
 
 	if len(args) > 0 {
 		query = args[0](query)
@@ -63,7 +61,7 @@ func (repo *cakeComponentIngredientRepository) FirstById(id any, args ...func(qu
 func (repo *cakeComponentIngredientRepository) Paginate(parameter url.Values) ([]model.CakeComponentIngredient, interface{}, error) {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := repo.transaction.
+	query := config.PgSQL.
 		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if search := parameter.Get("search"); len(search) > 3 {
@@ -81,7 +79,7 @@ func (repo *cakeComponentIngredientRepository) Paginate(parameter url.Values) ([
 func (repo *cakeComponentIngredientRepository) FindByIds(ids []any, args ...func(query *gorm.DB) *gorm.DB) []model.CakeComponentIngredient {
 	var ingredients []model.CakeComponentIngredient
 
-	query := repo.transaction
+	query := config.PgSQL
 	if len(args) > 0 {
 		query = args[0](query)
 	}
@@ -98,8 +96,8 @@ func (repo *cakeComponentIngredientRepository) Store(form form.CakeComponentIngr
 	ingredient := model.CakeComponentIngredient{
 		Name:        form.Name,
 		Description: form.Description,
-		UnitPrice:   form.UnitPrice,
-		Unit:        form.Unit,
+		Price:       form.UnitPrice,
+		UnitId:      form.UnitId,
 	}
 
 	err := repo.transaction.Create(&ingredient).Error
@@ -113,8 +111,8 @@ func (repo *cakeComponentIngredientRepository) Store(form form.CakeComponentIngr
 func (repo *cakeComponentIngredientRepository) Update(ingredient model.CakeComponentIngredient, form form.CakeComponentIngredientForm) model.CakeComponentIngredient {
 	ingredient.Name = form.Name
 	ingredient.Description = form.Description
-	ingredient.UnitPrice = form.UnitPrice
-	ingredient.Unit = form.Unit
+	ingredient.Price = form.UnitPrice
+	ingredient.UnitId = form.UnitId
 
 	err := repo.transaction.Save(&ingredient).Error
 	if err != nil {

@@ -34,7 +34,7 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 	var cake model.Cake
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeRepository(tx)
+		srv.setRepositoryWithTransaction(tx)
 
 		cake = srv.repository.Store(form, srv.calculateSellPrice(form), srv.uploadFile(form))
 		recipes := srv.repository.SaveRecipes(cake, form.Ingredients)
@@ -53,11 +53,10 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 }
 
 func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
-	var cake model.Cake
+	cake := srv.prepareRepositoryWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeRepository(tx)
-		cake = srv.repository.FirstById(id)
+		srv.setRepositoryWithTransaction(tx)
 
 		act := activity.UseActivity{}.
 			SetReference(cake).
@@ -82,9 +81,10 @@ func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
 }
 
 func (srv *cakeService) Delete(id string) bool {
+	cake := srv.prepareRepositoryWithData(id)
+
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeRepository(tx)
-		cake := srv.repository.FirstById(id)
+		srv.setRepositoryWithTransaction(tx)
 
 		srv.repository.DeleteRecipes(cake)
 		srv.repository.DeleteCosts(cake)
@@ -113,7 +113,7 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 
 	ingredients := ingredientRepo.FindByIds(ingredientIDs)
 	for _, ingredient := range ingredients {
-		sellPrice += ingredient.UnitPrice * recipeQtys[ingredient.ID]
+		sellPrice += ingredient.Price * recipeQtys[ingredient.ID]
 	}
 
 	// Add additional costs
@@ -139,4 +139,24 @@ func (srv *cakeService) uploadFile(form form.CakeForm) string {
 	storage := xtremefs.Storage{IsPublic: uploader.IsPublic}
 
 	return storage.GetFullPathURL(filePath.(string))
+}
+
+func (srv *cakeService) prepareRepository() {
+	srv.setRepositoryWithTransaction(nil)
+}
+
+func (srv *cakeService) prepareRepositoryWithData(id any) model.Cake {
+	srv.prepareRepository()
+	return srv.repository.FirstById(id)
+}
+
+func (srv *cakeService) setRepositoryWithTransaction(tx *gorm.DB) {
+	if tx == nil {
+		tx = config.PgSQL
+	}
+	if srv.repository == nil {
+		srv.repository = repository.NewCakeRepository(tx)
+	} else {
+		srv.repository.SetTransaction(tx)
+	}
 }

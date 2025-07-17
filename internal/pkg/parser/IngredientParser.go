@@ -1,6 +1,11 @@
 package parser
 
-import "service/internal/pkg/model"
+import (
+	"service/internal/pkg/constant"
+	"service/internal/pkg/model"
+
+	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
+)
 
 type IngredientParser struct {
 	Array  []model.CakeComponentIngredient
@@ -37,7 +42,7 @@ func (parser IngredientParser) First() interface{} {
 		"id":          ingredient.ID,
 		"name":        ingredient.Name,
 		"description": ingredient.Description,
-		"unitPrice":   ingredient.UnitPrice,
-		"unit":        ingredient.Unit,
+		"price":       ingredient.Price,
+		"unit":        constant.CakeIngredientUnitOfMeasure{}.Display(xtremepkg.ToInt(ingredient.UnitId)),
 	}
 }

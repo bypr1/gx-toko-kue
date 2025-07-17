@@ -30,9 +30,8 @@ type cakeComponentIngredientService struct {
 func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredientForm) model.CakeComponentIngredient {
 	var ingredient model.CakeComponentIngredient
 
+	srv.prepareRepository()
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeComponentIngredientRepository(tx)
-
 		ingredient = srv.repository.Store(form)
 
 		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_CREATE).
@@ -45,11 +44,10 @@ func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredi
 }
 
 func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredientForm, id any) model.CakeComponentIngredient {
-	var ingredient model.CakeComponentIngredient
+	ingredient := srv.prepareRepositoryWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeComponentIngredientRepository(tx)
-		ingredient = srv.repository.FirstById(id)
+		srv.setRepositoryWithTransaction(tx)
 
 		act := activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_UPDATE)
 
@@ -76,4 +74,21 @@ func (srv *cakeComponentIngredientService) Delete(id any) bool {
 		return nil
 	})
 	return true
+}
+
+func (srv *cakeComponentIngredientService) prepareRepository() {
+	srv.setRepositoryWithTransaction(nil)
+}
+
+func (srv *cakeComponentIngredientService) prepareRepositoryWithData(id any) model.CakeComponentIngredient {
+	srv.prepareRepository()
+	return srv.repository.FirstById(id)
+}
+
+func (srv *cakeComponentIngredientService) setRepositoryWithTransaction(tx *gorm.DB) {
+	if srv.repository == nil {
+		srv.repository = repository.NewCakeComponentIngredientRepository(tx)
+	} else {
+		srv.repository.SetTransaction(tx)
+	}
 }

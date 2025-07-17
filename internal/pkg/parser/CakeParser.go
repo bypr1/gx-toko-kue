@@ -1,7 +1,10 @@
 package parser
 
 import (
+	"service/internal/pkg/constant"
 	"service/internal/pkg/model"
+
+	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
 )
 
 type CakeParser struct {
@@ -40,8 +43,8 @@ func (parser CakeParser) Brief() interface{} {
 		"name":        cake.Name,
 		"description": cake.Description,
 		"margin":      cake.Margin,
-		"sellPrice":   cake.SellPrice,
-		"unit":        cake.Unit,
+		"price":       cake.Price,
+		"unit":        constant.CakeUnitOfMeasure{}.Display(xtremepkg.ToInt(cake.Unit)),
 		"stock":       cake.Stock,
 		"image":       cake.Image,
 		"createdAt":   cake.CreatedAt.Format("02/01/2006 15:04"),
@@ -72,8 +75,8 @@ func (parser CakeParser) First() interface{} {
 		"name":        cake.Name,
 		"description": cake.Description,
 		"margin":      cake.Margin,
-		"sellPrice":   cake.SellPrice,
-		"unit":        cake.Unit,
+		"price":       cake.Price,
+		"unit":        constant.CakeUnitOfMeasure{}.Display(xtremepkg.ToInt(cake.Unit)),
 		"stock":       cake.Stock,
 		"createdAt":   cake.CreatedAt.Format("02/01/2006 15:04"),
 		"updatedAt":   cake.UpdatedAt.Format("02/01/2006 15:04"),
