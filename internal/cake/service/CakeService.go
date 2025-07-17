@@ -34,7 +34,7 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 	var cake model.Cake
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.setRepositoryWithTransaction(tx)
+		srv.repository.SetTransaction(tx)
 
 		cake = srv.repository.Store(form, srv.calculateSellPrice(form), srv.uploadFile(form))
 		recipes := srv.repository.SaveRecipes(cake, form.Ingredients)
@@ -53,10 +53,10 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 }
 
 func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
-	cake := srv.prepareRepositoryWithData(id)
+	cake := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.setRepositoryWithTransaction(tx)
+		srv.repository.SetTransaction(tx)
 
 		act := activity.UseActivity{}.
 			SetReference(cake).
@@ -81,10 +81,10 @@ func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
 }
 
 func (srv *cakeService) Delete(id string) bool {
-	cake := srv.prepareRepositoryWithData(id)
+	cake := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.setRepositoryWithTransaction(tx)
+		srv.repository.SetTransaction(tx)
 
 		srv.repository.DeleteRecipes(cake)
 		srv.repository.DeleteCosts(cake)
@@ -141,22 +141,11 @@ func (srv *cakeService) uploadFile(form form.CakeForm) string {
 	return storage.GetFullPathURL(filePath.(string))
 }
 
-func (srv *cakeService) prepareRepository() {
-	srv.setRepositoryWithTransaction(nil)
+func (srv *cakeService) prepare() {
+	srv.repository = repository.NewCakeRepository()
 }
 
-func (srv *cakeService) prepareRepositoryWithData(id any) model.Cake {
-	srv.prepareRepository()
+func (srv *cakeService) prepareWithData(id any) model.Cake {
+	srv.prepare()
 	return srv.repository.FirstById(id)
-}
-
-func (srv *cakeService) setRepositoryWithTransaction(tx *gorm.DB) {
-	if tx == nil {
-		tx = config.PgSQL
-	}
-	if srv.repository == nil {
-		srv.repository = repository.NewCakeRepository(tx)
-	} else {
-		srv.repository.SetTransaction(tx)
-	}
 }

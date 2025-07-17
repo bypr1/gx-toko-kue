@@ -32,6 +32,7 @@ func cakeRouter(router *mux.Router) {
 	router.HandleFunc("", cakeHandler.Get).Methods("GET")
 	router.HandleFunc("", cakeHandler.Create).Methods("POST")
 	router.HandleFunc("/unitofmeasures", cakeHandler.GetUnitOfMeasure).Methods("GET")
+	router.HandleFunc("/costs", cakeHandler.GetCostType).Methods("GET")
 	router.HandleFunc("/{id}", cakeHandler.Detail).Methods("GET")
 	router.HandleFunc("/{id}", cakeHandler.Update).Methods("PUT")
 	router.HandleFunc("/{id}", cakeHandler.Delete).Methods("DELETE")
