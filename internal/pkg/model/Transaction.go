@@ -11,7 +11,7 @@ type Transaction struct {
 	TransactionDate time.Time `gorm:"column:transactionDate;not null"`
 	TotalAmount     float64   `gorm:"column:totalAmount;not null"`
 
-	Cakes []TransactionCake `gorm:"foreignKey:TransactionID"`
+	Cakes []TransactionCake `gorm:"foreignKey:TransactionId"`
 }
 
 func (Transaction) TableName() string {

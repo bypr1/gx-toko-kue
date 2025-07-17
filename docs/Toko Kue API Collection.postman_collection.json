@@ -92,7 +92,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"name\": \"Chocolate Mint\",\n  \"description\": \"High quality cocoa powder for baking\",\n  \"unitPrice\": 50000,\n  \"unit\": \"kg\"\n}",
+									"raw": "{\n  \"name\": \"Chocolate Mint\",\n  \"description\": \"High quality cocoa powder for baking\",\n  \"unitPrice\": 50000,\n  \"unitId\": 1\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -125,7 +125,7 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"name\": \"Black Powder\",\n  \"description\": \"Premium quality cocoa powder for professional baking\",\n  \"unitPrice\": 55000,\n  \"unit\": \"kg\"\n}",
+									"raw": "{\n  \"name\": \"Black Powder\",\n  \"description\": \"Premium quality cocoa powder for professional baking\",\n  \"unitPrice\": 55000,\n  \"unitId\": 1\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -255,7 +255,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Chocolate Mint Cake\",\n  \"description\": \"Delicious chocolate cake with rich flavor\",\n  \"margin\": 0.3,\n  \"unit\": \"piece\",\n  \"stock\": 10,\n  \"ingredients\": [\n    {\n      \"ingredientId\": 1,\n      \"amount\": 200,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredientId\": 2,\n      \"amount\": 100,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 5000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 10000\n    }\n  ]\n}",
+							"raw": "{\n  \"name\": \"Chocolate Mint Cake\",\n  \"description\": \"Delicious chocolate cake with rich flavor\",\n  \"margin\": 30,\n  \"unitId\": 1,\n  \"stock\": 10,\n  \"ingredients\": [\n    {\n      \"ingredientId\": 1,\n      \"amount\": 200,\n      \"unitId\": 1\n    },\n    {\n      \"ingredientId\": 2,\n      \"amount\": 100,\n      \"unitId\": 2\n    }\n  ],\n  \"costs\": [\n    {\n      \"typeId\": 1,\n      \"cost\": 5000\n    },\n    {\n      \"typeId\": 2,\n      \"cost\": 10000\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -286,7 +286,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Updated Chocolate Mint Cake\",\n  \"description\": \"Updated description for chocolate cake\",\n  \"margin\": 0.35,\n  \"unit\": \"piece\",\n  \"stock\": 15,\n  \"ingredients\": [\n    {\n      \"ingredientId\": 1,\n      \"amount\": 250,\n      \"unit\": \"gram\"\n    },\n    {\n      \"ingredientId\": 2,\n      \"amount\": 120,\n      \"unit\": \"ml\"\n    }\n  ],\n  \"costs\": [\n    {\n      \"type\": \"packaging\",\n      \"cost\": 6000\n    },\n    {\n      \"type\": \"labor\",\n      \"cost\": 15000\n    }\n  ]\n}",
+							"raw": "{\n  \"name\": \"Updated Chocolate Mint Cake\",\n  \"description\": \"Updated description for chocolate cake\",\n  \"margin\": 35,\n  \"unitId\": 1,\n  \"stock\": 15,\n  \"ingredients\": [\n    {\n      \"ingredientId\": 1,\n      \"amount\": 250,\n      \"unitId\": 1\n    },\n    {\n      \"ingredientId\": 2,\n      \"amount\": 120,\n      \"unitId\": 2\n    }\n  ],\n  \"costs\": [\n    {\n      \"typeId\": 1,\n      \"cost\": 6000\n    },\n    {\n      \"typeId\": 2,\n      \"cost\": 15000\n    }\n  ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -367,8 +367,8 @@
 									"type": "text"
 								},
 								{
-									"key": "unit",
-									"value": "pieces",
+									"key": "unitId",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -387,8 +387,8 @@
 									"type": "text"
 								},
 								{
-									"key": "ingredients[0][unit]",
-									"value": "kg",
+									"key": "ingredients[0][unitId]",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -402,8 +402,8 @@
 									"type": "text"
 								},
 								{
-									"key": "ingredients[1][unit]",
-									"value": "pcs",
+									"key": "ingredients[1][unitId]",
+									"value": "2",
 									"type": "text"
 								},
 								{
@@ -417,13 +417,13 @@
 									"type": "text"
 								},
 								{
-									"key": "ingredients[2][unit]",
-									"value": "kg",
+									"key": "ingredients[2][unitId]",
+									"value": "1",
 									"type": "text"
 								},
 								{
 									"key": "costs[0][type]",
-									"value": "Labor",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -433,7 +433,7 @@
 								},
 								{
 									"key": "costs[1][type]",
-									"value": "Packaging",
+									"value": "2",
 									"type": "text"
 								},
 								{
@@ -443,7 +443,7 @@
 								},
 								{
 									"key": "costs[2][type]",
-									"value": "Delivery",
+									"value": "3",
 									"type": "text"
 								},
 								{
@@ -468,7 +468,7 @@
 								"1"
 							]
 						},
-						"description": "Generated from cURL: curl -X PUT http://localhost:8080/api/cakes/1 \\\n  -H \"Content-Type: multipart/form-data\" \\\n  -F \"name=Premium Chocolate Cake\" \\\n  -F \"description=Premium chocolate cake with premium ingredients\" \\\n  -F \"margin=30.0\" \\\n  -F \"unit=pieces\" \\\n  -F \"stock=15\" \\\n  -F \"ingredients[0][ingredientId]=1\" \\\n  -F \"ingredients[0][amount]=3.0\" \\\n  -F \"ingredients[0][unit]=kg\" \\\n  -F \"ingredients[1][ingredientId]=2\" \\\n  -F \"ingredients[1][amount]=8\" \\\n  -F \"ingredients[1][unit]=pcs\" \\\n  -F \"ingredients[2][ingredientId]=3\" \\\n  -F \"ingredients[2][amount]=1.5\" \\\n  -F \"ingredients[2][unit]=kg\" \\\n  -F \"costs[0][type]=Labor\" \\\n  -F \"costs[0][cost]=75000\" \\\n  -F \"costs[1][type]=Packaging\" \\\n  -F \"costs[1][cost]=20000\" \\\n  -F \"costs[2][type]=Delivery\" \\\n  -F \"costs[2][cost]=10000\" \\\n  -F \"image=@/path/to/updated-cake-image.jpg\""
+						"description": "Update cake using multipart form data with proper field names matching the form structure"
 					},
 					"response": []
 				},
@@ -496,8 +496,8 @@
 									"type": "text"
 								},
 								{
-									"key": "unit",
-									"value": "pieces",
+									"key": "unitId",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -516,8 +516,8 @@
 									"type": "text"
 								},
 								{
-									"key": "ingredients[0][unit]",
-									"value": "kg",
+									"key": "ingredients[0][unitId]",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -531,13 +531,13 @@
 									"type": "text"
 								},
 								{
-									"key": "ingredients[1][unit]",
-									"value": "pcs",
+									"key": "ingredients[1][unitId]",
+									"value": "2",
 									"type": "text"
 								},
 								{
 									"key": "costs[0][type]",
-									"value": "Labor",
+									"value": "1",
 									"type": "text"
 								},
 								{
@@ -547,7 +547,7 @@
 								},
 								{
 									"key": "costs[1][type]",
-									"value": "Packaging",
+									"value": "2",
 									"type": "text"
 								},
 								{
@@ -571,7 +571,7 @@
 								"cakes"
 							]
 						},
-						"description": "Generated from cURL: curl -X POST http://localhost:8080/api/cakes \\\n  -H \"Content-Type: multipart/form-data\" \\\n  -F \"name=Chocolate Cake\" \\\n  -F \"description=Delicious chocolate cake with rich flavor\" \\\n  -F \"margin=25.5\" \\\n  -F \"unit=pieces\" \\\n  -F \"stock=10\" \\\n  -F \"ingredients[0][ingredientId]=1\" \\\n  -F \"ingredients[0][amount]=2.5\" \\\n  -F \"ingredients[0][unit]=kg\" \\\n  -F \"ingredients[1][ingredientId]=2\" \\\n  -F \"ingredients[1][amount]=6\" \\\n  -F \"ingredients[1][unit]=pcs\" \\\n  -F \"costs[0][type]=Labor\" \\\n  -F \"costs[0][cost]=50000\" \\\n  -F \"costs[1][type]=Packaging\" \\\n  -F \"costs[1][cost]=15000\" \\\n  -F \"image=@/path/to/cake-image.jpg\""
+						"description": "Create cake using multipart form data with proper field names matching the form structure"
 					},
 					"response": []
 				}
