@@ -77,3 +77,10 @@ func (CakeHandler) GetUnitOfMeasure(w http.ResponseWriter, r *http.Request) {
 	res := xtremeres.Response{Array: result}
 	res.Success(w)
 }
+
+func (CakeHandler) GetCostType(w http.ResponseWriter, r *http.Request) {
+	result := core.IDName{}.Get(constant.CakeCostType{})
+
+	res := xtremeres.Response{Array: result}
+	res.Success(w)
+}

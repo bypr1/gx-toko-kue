@@ -41,9 +41,9 @@ func (srv *transactionService) SetCakeRepository(repo port.CakeRepository) {
 func (srv *transactionService) Create(form form.TransactionForm) model.Transaction {
 	var transaction model.Transaction
 
-	srv.prepareRepository()
+	srv.prepare()
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository.SetTransaction(tx)
+		srv.setRepositoriesWithTransaction(tx)
 
 		cakes := srv.getCakes(form.Cakes)
 		totalAmount := srv.calculateTotalPrice(form.Cakes, cakes)
@@ -61,10 +61,10 @@ func (srv *transactionService) Create(form form.TransactionForm) model.Transacti
 }
 
 func (srv *transactionService) Update(form form.TransactionForm, id string) model.Transaction {
-	transaction := srv.prepareRepositoryWithData(id)
+	transaction := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.setRepositoryWithTransaction(tx)
+		srv.setRepositoriesWithTransaction(tx)
 
 		act := activity.UseActivity{}.
 			SetReference(transaction).
@@ -88,10 +88,10 @@ func (srv *transactionService) Update(form form.TransactionForm, id string) mode
 }
 
 func (srv *transactionService) Delete(id string) bool {
-	transaction := srv.prepareRepositoryWithData(id)
+	transaction := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.setRepositoryWithTransaction(tx)
+		srv.setRepositoriesWithTransaction(tx)
 
 		srv.repository.DeleteCakes(transaction)
 		srv.repository.Delete(transaction)
@@ -140,21 +140,16 @@ func (srv *transactionService) calculateTotalPrice(cakeFormItems []form.Transact
 	return totalAmount
 }
 
-func (srv *transactionService) prepareRepository() {
-	srv.setRepositoryWithTransaction(nil)
+func (srv *transactionService) prepare() {
+	srv.repository = repository.NewTransactionRepository(nil)
 }
 
-func (srv *transactionService) prepareRepositoryWithData(id any) model.Transaction {
-	srv.prepareRepository()
+func (srv *transactionService) prepareWithData(id any) model.Transaction {
+	srv.prepare()
 	return srv.repository.FirstById(id)
 }
 
-func (srv *transactionService) setRepositoryWithTransaction(tx *gorm.DB) {
-	if srv.repository == nil {
-		srv.repository = repository.NewTransactionRepository(tx)
-	} else {
-		srv.repository.SetTransaction(tx)
-	}
-
+func (srv *transactionService) setRepositoriesWithTransaction(tx *gorm.DB) {
+	srv.repository.SetTransaction(tx)
 	srv.cakeRepository.SetTransaction(tx)
 }
