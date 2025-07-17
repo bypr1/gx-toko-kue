@@ -22,7 +22,7 @@ func (s Cake_1751514772746516) Tables() []xtremedb.Table {
 	return []xtremedb.Table{
 		{Connection: s.Connection, CreateTable: model.CakeComponentIngredient{}, Owner: owner},
 		{Connection: s.Connection, CreateTable: model.Cake{}, Owner: owner},
-		{Connection: s.Connection, CreateTable: model.CakeRecipeIngredient{}, Owner: owner},
+		{Connection: s.Connection, CreateTable: model.CakeIngredient{}, Owner: owner},
 		{Connection: s.Connection, CreateTable: model.CakeCost{}, Owner: owner},
 	}
 }

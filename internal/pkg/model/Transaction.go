@@ -8,9 +8,10 @@ import (
 
 type Transaction struct {
 	xtrememodel.BaseModel
-	TransactionDate time.Time         `gorm:"column:transactionDate;not null"`
-	TotalAmount     float64           `gorm:"column:totalAmount;not null"`
-	Cakes           []TransactionCake `gorm:"foreignKey:TransactionID"`
+	TransactionDate time.Time `gorm:"column:transactionDate;not null"`
+	TotalAmount     float64   `gorm:"column:totalAmount;not null"`
+
+	Cakes []TransactionCake `gorm:"foreignKey:TransactionID"`
 }
 
 func (Transaction) TableName() string {

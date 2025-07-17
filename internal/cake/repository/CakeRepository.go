@@ -24,8 +24,8 @@ type CakeRepository interface {
 	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake
 	FindByIds(ids []any) []model.Cake
 
-	SaveRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
-	SaveCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
+	SaveRecipes(cake model.Cake, recipes []formpkg.CakeFormComponentIngredient) []model.CakeIngredient
+	SaveCosts(cake model.Cake, costs []formpkg.CakeFormComponentCost) []model.CakeCost
 
 	DeleteRecipes(cake model.Cake)
 	DeleteCosts(cake model.Cake)
@@ -35,8 +35,6 @@ func NewCakeRepository(args ...*gorm.DB) CakeRepository {
 	repository := cakeRepository{}
 	if len(args) > 0 {
 		repository.transaction = args[0]
-	} else {
-		repository.transaction = config.PgSQL // Default to global config
 	}
 
 	return &repository
@@ -60,7 +58,7 @@ func (repo *cakeRepository) PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB {
 
 func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Cake {
 	var cake model.Cake
-	query := repo.transaction
+	query := config.PgSQL
 
 	if len(args) > 0 {
 		query = args[0](query)
@@ -77,7 +75,7 @@ func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm
 func (repo *cakeRepository) Paginate(parameter url.Values) ([]model.Cake, interface{}, error) {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := repo.transaction.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+	query := config.PgSQL.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if search := parameter.Get("search"); len(search) > 3 {
 		query = query.Where("name ILIKE ?", "%"+search+"%")
@@ -94,7 +92,7 @@ func (repo *cakeRepository) Paginate(parameter url.Values) ([]model.Cake, interf
 func (repo *cakeRepository) FindByIds(ids []any) []model.Cake {
 	var cakes []model.Cake
 
-	err := repo.transaction.Where("id IN ?", ids).Find(&cakes).Error
+	err := config.PgSQL.Where("id IN ?", ids).Find(&cakes).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeGet(err.Error())
 	}
@@ -107,7 +105,7 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64, imag
 		Name:        form.Name,
 		Description: form.Description,
 		Margin:      form.Margin,
-		SellPrice:   sellPrice,
+		Price:       sellPrice,
 		Unit:        form.Unit,
 		Stock:       form.Stock,
 		Image:       image,
@@ -125,7 +123,7 @@ func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellP
 	cake.Name = form.Name
 	cake.Description = form.Description
 	cake.Margin = form.Margin
-	cake.SellPrice = sellPrice
+	cake.Price = sellPrice
 	cake.Unit = form.Unit
 	cake.Stock = form.Stock
 	cake.Image = image
@@ -145,13 +143,13 @@ func (repo *cakeRepository) Delete(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
+func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.CakeFormComponentIngredient) []model.CakeIngredient {
 	var toDelete []uint
-	var toUpdate []model.CakeRecipeIngredient
-	var toCreate []model.CakeRecipeIngredient
+	var toUpdate []model.CakeIngredient
+	var toCreate []model.CakeIngredient
 
 	existingRecipes := repo.getExistingRecipes(cake)
-	existingMap := make(map[uint]model.CakeRecipeIngredient)
+	existingMap := make(map[uint]model.CakeIngredient)
 	for _, existing := range existingRecipes {
 		existingMap[existing.ID] = existing
 	}
@@ -160,11 +158,11 @@ func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.Ca
 		if recipeForm.Deleted {
 			toDelete = append(toDelete, recipeForm.ID)
 		} else {
-			cakeRecipe := model.CakeRecipeIngredient{
+			cakeRecipe := model.CakeIngredient{
 				CakeID:       cake.ID,
 				IngredientID: recipeForm.IngredientID,
 				Amount:       recipeForm.Amount,
-				Unit:         recipeForm.Unit,
+				Unit:         recipeForm.UnitId,
 			}
 
 			if recipeForm.ID > 0 { // Update existing
@@ -191,7 +189,7 @@ func (repo *cakeRepository) SaveRecipes(cake model.Cake, recipeForm []formpkg.Ca
 	return append(toUpdate, toCreate...)
 }
 
-func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeCompCostForm) []model.CakeCost {
+func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeFormComponentCost) []model.CakeCost {
 	var toDelete []uint
 	var toUpdate []model.CakeCost
 	var toCreate []model.CakeCost
@@ -208,7 +206,7 @@ func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeCo
 		} else {
 			cakeCost := model.CakeCost{
 				CakeID: cake.ID,
-				Type:   costForm.CostType,
+				Type:   costForm.CostTypeID,
 				Cost:   costForm.Cost,
 			}
 
@@ -237,7 +235,7 @@ func (repo *cakeRepository) SaveCosts(cake model.Cake, costForm []formpkg.CakeCo
 }
 
 func (repo *cakeRepository) DeleteRecipes(cake model.Cake) {
-	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeRecipeIngredient{}).Error
+	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeIngredient{}).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeRecipeDelete(err.Error())
 	}
@@ -252,8 +250,8 @@ func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
 
 // -- Private helper sections for the repository ---
 
-func (repo *cakeRepository) getExistingRecipes(cake model.Cake) []model.CakeRecipeIngredient {
-	var recipes []model.CakeRecipeIngredient
+func (repo *cakeRepository) getExistingRecipes(cake model.Cake) []model.CakeIngredient {
+	var recipes []model.CakeIngredient
 	repo.transaction.Where("\"cakeId\" = ?", cake.ID).Find(&recipes)
 	return recipes
 }
@@ -263,10 +261,10 @@ func (repo *cakeRepository) batchDeleteRecipes(ids []uint) error {
 		return nil
 	}
 
-	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.CakeRecipeIngredient{}).Error
+	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.CakeIngredient{}).Error
 }
 
-func (repo *cakeRepository) batchUpdateRecipes(recipes []model.CakeRecipeIngredient) error {
+func (repo *cakeRepository) batchUpdateRecipes(recipes []model.CakeIngredient) error {
 	if len(recipes) == 0 {
 		return nil
 	}
@@ -280,7 +278,7 @@ func (repo *cakeRepository) batchUpdateRecipes(recipes []model.CakeRecipeIngredi
 	return nil
 }
 
-func (repo *cakeRepository) batchCreateRecipes(recipes []model.CakeRecipeIngredient) error {
+func (repo *cakeRepository) batchCreateRecipes(recipes []model.CakeIngredient) error {
 	if len(recipes) == 0 {
 		return nil
 	}

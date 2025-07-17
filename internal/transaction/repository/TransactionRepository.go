@@ -36,8 +36,6 @@ func NewTransactionRepository(args ...*gorm.DB) TransactionRepository {
 	repository := transactionRepository{}
 	if len(args) > 0 {
 		repository.transaction = args[0]
-	} else {
-		repository.transaction = config.PgSQL // Default to global config
 	}
 
 	return &repository
@@ -61,7 +59,7 @@ func (repo *transactionRepository) PreloadCakes(query *gorm.DB) *gorm.DB {
 
 func (repo *transactionRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Transaction {
 	var transaction model.Transaction
-	query := repo.transaction
+	query := config.PgSQL
 
 	if len(args) > 0 {
 		query = args[0](query)
@@ -78,7 +76,7 @@ func (repo *transactionRepository) FirstById(id any, args ...func(query *gorm.DB
 func (repo *transactionRepository) Find(parameter url.Values) []model.Transaction {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := repo.transaction.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+	query := config.PgSQL.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if minAmount := parameter.Get("minAmount"); minAmount != "" {
 		query = query.Where("\"totalAmount\" >= ?", minAmount)
@@ -100,7 +98,7 @@ func (repo *transactionRepository) Find(parameter url.Values) []model.Transactio
 func (repo *transactionRepository) FindForReport(parameter url.Values) []excel.TransactionReport {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := repo.transaction.
+	query := config.PgSQL.
 		Select(`transactions.*, 
                 cakeItems."totalAmount" as "totalAmount", 
                 cakeItems."totalCakes" as "totalCakes"`).
@@ -128,7 +126,7 @@ func (repo *transactionRepository) FindForReport(parameter url.Values) []excel.T
 func (repo *transactionRepository) Paginate(parameter url.Values) ([]model.Transaction, interface{}, error) {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := repo.transaction.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+	query := config.PgSQL.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if minAmount := parameter.Get("minAmount"); minAmount != "" {
 		query = query.Where("\"totalAmount\" >= ?", minAmount)
@@ -202,13 +200,13 @@ func (repo *transactionRepository) SaveCakes(transaction model.Transaction, cake
 			toDelete = append(toDelete, cakeForm.ID)
 		} else {
 			cake := cakes[cakeForm.CakeID]
-			subTotal := float64(cakeForm.Quantity) * cake.SellPrice
+			subTotal := float64(cakeForm.Quantity) * cake.Price
 
 			transactionCake := model.TransactionCake{
 				TransactionID: transaction.ID,
 				CakeID:        cakeForm.CakeID,
 				Quantity:      cakeForm.Quantity,
-				UnitPrice:     cake.SellPrice,
+				Price:         cake.Price,
 				SubTotal:      subTotal,
 			}
 
