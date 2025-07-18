@@ -32,6 +32,8 @@ func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredi
 	srv.prepare()
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
+		srv.repository.SetTransaction(tx)
+
 		ingredient = srv.repository.Store(form)
 
 		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_CREATE).
@@ -63,9 +65,10 @@ func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredi
 }
 
 func (srv *cakeComponentIngredientService) Delete(id any) bool {
+	ingredient := srv.prepareWithData(id)
+
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeComponentIngredientRepository(tx)
-		ingredient := srv.repository.FirstById(id)
+		srv.repository.SetTransaction(tx)
 		srv.repository.Delete(ingredient)
 
 		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_DELETE).

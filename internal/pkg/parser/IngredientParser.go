@@ -41,6 +41,6 @@ func (parser IngredientParser) First() interface{} {
 		"name":        ingredient.Name,
 		"description": ingredient.Description,
 		"price":       ingredient.Price,
-		"unit":        constant.CakeIngredientUnitOfMeasure{}.Display(ingredient.UnitId),
+		"unit":        constant.AllUnitOfMeasure{}.IDAndName(ingredient.UnitId),
 	}
 }

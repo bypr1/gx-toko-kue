@@ -32,16 +32,18 @@ func cakeRouter(router *mux.Router) {
 	ingredientRouter := router.PathPrefix("/components/ingredients").Subrouter()
 	ingredientRouter.HandleFunc("", ingredientHandler.Get).Methods("GET")
 	ingredientRouter.HandleFunc("", ingredientHandler.Create).Methods("POST")
-	ingredientRouter.HandleFunc("/statics/unitofmeasures", ingredientHandler.GetUnitOfMeasure).Methods("GET")
 	ingredientRouter.HandleFunc("/{id}", ingredientHandler.Detail).Methods("GET")
 	ingredientRouter.HandleFunc("/{id}", ingredientHandler.Update).Methods("PUT")
 	ingredientRouter.HandleFunc("/{id}", ingredientHandler.Delete).Methods("DELETE")
 
+	var cakeStaticHandler handler.CakeStaticHandler
+	cakeStaticRouter := router.PathPrefix("/statics").Subrouter()
+	cakeStaticRouter.HandleFunc("/unitofmeasures", cakeStaticHandler.GetUnitOfMeasure).Methods("GET")
+	cakeStaticRouter.HandleFunc("/costs", cakeStaticHandler.GetCostType).Methods("GET")
+
 	var cakeHandler handler.CakeHandler
 	router.HandleFunc("", cakeHandler.Get).Methods("GET")
 	router.HandleFunc("", cakeHandler.Create).Methods("POST")
-	router.HandleFunc("/statics/unitofmeasures", cakeHandler.GetUnitOfMeasure).Methods("GET")
-	router.HandleFunc("/statics/costs", cakeHandler.GetCostType).Methods("GET")
 	router.HandleFunc("/{id}", cakeHandler.Detail).Methods("GET")
 	router.HandleFunc("/{id}", cakeHandler.Update).Methods("PUT")
 	router.HandleFunc("/{id}", cakeHandler.Delete).Methods("DELETE")

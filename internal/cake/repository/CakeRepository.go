@@ -24,8 +24,8 @@ type CakeRepository interface {
 	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake
 	FindByIds(ids []any) []model.Cake
 
-	SaveRecipes(cake model.Cake, recipes []formpkg.CakeFormComponentIngredient) []model.CakeIngredient
-	SaveCosts(cake model.Cake, costs []formpkg.CakeFormComponentCost) []model.CakeCost
+	SaveRecipes(cake model.Cake, recipes []formpkg.CakeIngredientForm) []model.CakeIngredient
+	SaveCosts(cake model.Cake, costs []formpkg.CakeCostForm) []model.CakeCost
 
 	DeleteRecipes(cake model.Cake)
 	DeleteCosts(cake model.Cake)
@@ -143,7 +143,7 @@ func (repo *cakeRepository) Delete(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) SaveRecipes(cake model.Cake, form []formpkg.CakeFormComponentIngredient) []model.CakeIngredient {
+func (repo *cakeRepository) SaveRecipes(cake model.Cake, form []formpkg.CakeIngredientForm) []model.CakeIngredient {
 	var toDelete []uint
 	var toUpdate []model.CakeIngredient
 	var toCreate []model.CakeIngredient
@@ -189,7 +189,7 @@ func (repo *cakeRepository) SaveRecipes(cake model.Cake, form []formpkg.CakeForm
 	return append(toUpdate, toCreate...)
 }
 
-func (repo *cakeRepository) SaveCosts(cake model.Cake, form []formpkg.CakeFormComponentCost) []model.CakeCost {
+func (repo *cakeRepository) SaveCosts(cake model.Cake, form []formpkg.CakeCostForm) []model.CakeCost {
 	var toDelete []uint
 	var toUpdate []model.CakeCost
 	var toCreate []model.CakeCost
@@ -269,12 +269,11 @@ func (repo *cakeRepository) batchUpdateRecipes(recipes []model.CakeIngredient) e
 		return nil
 	}
 
-	for _, recipe := range recipes {
-		err := repo.transaction.Save(&recipe).Error
-		if err != nil {
-			return err
-		}
+	for i := range recipes {
+		repo.transaction.Save(&recipes[i])
+		repo.transaction.Preload("Ingredient").First(&recipes[i], recipes[i].ID)
 	}
+
 	return nil
 }
 
@@ -283,7 +282,12 @@ func (repo *cakeRepository) batchCreateRecipes(recipes []model.CakeIngredient) e
 		return nil
 	}
 
-	return repo.transaction.Create(&recipes).Error
+	repo.transaction.Create(&recipes)
+	for i := range recipes {
+		repo.transaction.Preload("Ingredient").First(&recipes[i], recipes[i].ID)
+	}
+
+	return nil
 }
 
 func (repo *cakeRepository) getExistingCosts(cake model.Cake) []model.CakeCost {
