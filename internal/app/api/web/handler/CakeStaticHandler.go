@@ -20,7 +20,7 @@ func (CakeStaticHandler) GetUnitOfMeasure(w http.ResponseWriter, r *http.Request
 	} else if xtremepkg.ToBool(r.URL.Query().Get("isCake")) {
 		result = core.IDName{}.Get(constant.CakeUnitOfMeasure{})
 	} else {
-		result = core.IDName{}.Get(constant.AllUnitOfMeasure{})
+		result = core.IDName{}.Get(constant.UnitOfMeasure{})
 	}
 
 	res := xtremeres.Response{Array: result}

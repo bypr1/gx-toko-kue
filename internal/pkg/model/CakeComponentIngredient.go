@@ -6,10 +6,10 @@ import (
 
 type CakeComponentIngredient struct {
 	xtrememodel.BaseModel
-	Name        string  `gorm:"column:name;type:varchar(250);not null"`
-	Description string  `gorm:"column:description;type:text;default:null"`
-	Price       float64 `gorm:"column:unitPrice;not null"`
 	UnitId      int     `gorm:"column:unitId;not null"`
+	Name        string  `gorm:"column:name;type:varchar(250);not null"`
+	Description *string `gorm:"column:description;type:text;default:null"`
+	Price       float64 `gorm:"column:price;not null"`
 }
 
 func (CakeComponentIngredient) TableName() string {

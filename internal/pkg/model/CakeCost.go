@@ -8,7 +8,7 @@ type CakeCost struct {
 	xtrememodel.BaseModel
 	CakeId uint    `gorm:"column:cakeId;not null"`
 	TypeId int     `gorm:"column:typeId;not null"`
-	Cost   float64 `gorm:"column:cost;not null"`
+	Price  float64 `gorm:"column:price;not null"`
 }
 
 func (CakeCost) TableName() string {

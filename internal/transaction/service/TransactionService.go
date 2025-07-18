@@ -52,7 +52,7 @@ func (srv *transactionService) Create(form form.TransactionForm) model.Transacti
 		transaction.Cakes = srv.repository.SaveCakes(transaction, form.Cakes, cakes)
 
 		activity.UseActivity{}.SetReference(transaction).SetParser(&parser.TransactionParser{Object: transaction}).SetNewProperty(constant.ACTION_CREATE).
-			Save(fmt.Sprintf("Created new transaction [%d] with total amount %.2f", transaction.ID, transaction.TotalAmount))
+			Save(fmt.Sprintf("Created new transaction [%d] with total amount %.2f", transaction.ID, transaction.TotalPrice))
 
 		return nil
 	})
@@ -79,7 +79,7 @@ func (srv *transactionService) Update(form form.TransactionForm, id string) mode
 
 		act.SetParser(&parser.TransactionParser{Object: transaction}).
 			SetNewProperty(constant.ACTION_UPDATE).
-			Save(fmt.Sprintf("Updated transaction [%d] with total amount %.2f", transaction.ID, transaction.TotalAmount))
+			Save(fmt.Sprintf("Updated transaction [%d] with total amount %.2f", transaction.ID, transaction.TotalPrice))
 
 		return nil
 	})
@@ -119,7 +119,7 @@ func (srv *transactionService) ReportExcel(parameter url.Values) string {
 func (srv *transactionService) getCakes(items []form.TransactionCakeForm) map[uint]model.Cake {
 	var cakeIDs []any
 	for _, it := range items {
-		cakeIDs = append(cakeIDs, it.CakeID)
+		cakeIDs = append(cakeIDs, it.CakeId)
 	}
 
 	cakes := srv.cakeRepository.FindByIds(cakeIDs)
@@ -133,7 +133,7 @@ func (srv *transactionService) getCakes(items []form.TransactionCakeForm) map[ui
 func (srv *transactionService) calculateTotalPrice(items []form.TransactionCakeForm, cakeMap map[uint]model.Cake) float64 {
 	var totalAmount float64
 	for _, it := range items {
-		if cake, exists := cakeMap[it.CakeID]; exists {
+		if cake, exists := cakeMap[it.CakeId]; exists {
 			totalAmount += float64(it.Quantity) * cake.Price
 		}
 	}

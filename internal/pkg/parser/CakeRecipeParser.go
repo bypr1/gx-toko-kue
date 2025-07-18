@@ -23,11 +23,11 @@ func (parser CakeRecipeParser) First() interface{} {
 	return map[string]interface{}{
 		"id":     recipe.ID,
 		"amount": recipe.Amount,
-		"unit":   constant.AllUnitOfMeasure{}.IDAndName(recipe.UnitId),
+		"unit":   constant.UnitOfMeasure{}.IDAndName(recipe.UnitId),
 		"ingredient": map[string]interface{}{
 			"id":   recipe.IngredientId,
 			"name": recipe.Ingredient.Name,
-			"unit": constant.AllUnitOfMeasure{}.IDAndName(recipe.Ingredient.UnitId),
+			"unit": constant.UnitOfMeasure{}.IDAndName(recipe.Ingredient.UnitId),
 		},
 	}
 }

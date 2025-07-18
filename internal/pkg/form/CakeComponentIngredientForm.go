@@ -10,9 +10,9 @@ import (
 
 type CakeComponentIngredientForm struct {
 	Name        string  `json:"name" validate:"required,max=250"`
-	Description string  `json:"description"`
-	UnitPrice   float64 `json:"unitPrice" validate:"required,gte=0"`
-	UnitId      int     `json:"unitId" validate:"required,max=50"`
+	Description *string `json:"description"`
+	Price       float64 `json:"price" validate:"required,gte=0"`
+	UnitId      int     `json:"unitId" validate:"required"`
 }
 
 func (f *CakeComponentIngredientForm) Validate() {
@@ -21,5 +21,6 @@ func (f *CakeComponentIngredientForm) Validate() {
 }
 
 func (f *CakeComponentIngredientForm) APIParse(r *http.Request) {
-	core.BaseForm{}.APIParse(r, &f)
+	form := core.BaseForm{}
+	form.APIParse(r, &f)
 }

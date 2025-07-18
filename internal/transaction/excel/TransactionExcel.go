@@ -123,8 +123,8 @@ func (ex TransactionExcel) setSheetsAndProperties() ([]string, [][][]interface{}
 	for _, transaction := range ex.Transactions {
 		row := []interface{}{
 			transaction.ID,
-			transaction.TransactionDate.Format("02/01/2006"),
-			transaction.TotalAmount,
+			transaction.Date.Format("02/01/2006"),
+			transaction.TotalPrice,
 			transaction.TotalCakes,
 			transaction.CreatedAt.Format("02/01/2006 15:04"),
 			transaction.UpdatedAt.Format("02/01/2006 15:04"),

@@ -96,7 +96,7 @@ func (repo *cakeComponentIngredientRepository) Store(form form.CakeComponentIngr
 	ingredient := model.CakeComponentIngredient{
 		Name:        form.Name,
 		Description: form.Description,
-		Price:       form.UnitPrice,
+		Price:       form.Price,
 		UnitId:      form.UnitId,
 	}
 
@@ -111,7 +111,7 @@ func (repo *cakeComponentIngredientRepository) Store(form form.CakeComponentIngr
 func (repo *cakeComponentIngredientRepository) Update(ingredient model.CakeComponentIngredient, form form.CakeComponentIngredientForm) model.CakeComponentIngredient {
 	ingredient.Name = form.Name
 	ingredient.Description = form.Description
-	ingredient.Price = form.UnitPrice
+	ingredient.Price = form.Price
 	ingredient.UnitId = form.UnitId
 
 	err := repo.transaction.Save(&ingredient).Error
