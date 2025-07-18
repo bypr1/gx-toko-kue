@@ -9,7 +9,7 @@ type TransactionCake struct {
 	TransactionId uint    `gorm:"column:transactionId;not null"`
 	CakeId        uint    `gorm:"column:cakeId;not null"`
 	Quantity      int     `gorm:"column:quantity;not null"`
-	Price         float64 `gorm:"column:unitPrice;not null"`
+	Price         float64 `gorm:"column:price;not null"`
 	SubTotal      float64 `gorm:"column:subTotal;not null"`
 
 	Transaction Transaction `gorm:"belongs_to:transactions;foreignKey:TransactionId"`

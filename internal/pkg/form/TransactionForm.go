@@ -8,13 +8,14 @@ import (
 )
 
 type TransactionForm struct {
-	TransactionDate string                `json:"transactionDate" validate:"required"`
-	Cakes           []TransactionCakeForm `json:"cakes" validate:"required,dive"`
+	Date string `json:"date" validate:"required"`
+
+	Cakes []TransactionCakeForm `json:"cakes" validate:"required,dive"`
 }
 
 type TransactionCakeForm struct {
 	ID       uint `json:"id"`
-	CakeID   uint `json:"cakeId" validate:"required,gt=0"`
+	CakeId   uint `json:"cakeId" validate:"required,gt=0"`
 	Quantity int  `json:"quantity" validate:"required,gt=0"`
 	Deleted  bool `json:"deleted"`
 }

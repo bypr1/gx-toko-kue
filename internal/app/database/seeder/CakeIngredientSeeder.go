@@ -21,7 +21,7 @@ func (seed *CakeIngredientSeeder) Seed() {
 
 		seed.Connection.Create(&model.CakeComponentIngredient{
 			Name:        ingredient["name"].(string),
-			Description: ingredient["description"].(string),
+			Description: ingredient["description"].(*string),
 			Price:       ingredient["unit_price"].(float64),
 			UnitId:      ingredient["unitId"].(int),
 		})

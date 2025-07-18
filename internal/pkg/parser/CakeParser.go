@@ -10,22 +10,6 @@ type CakeParser struct {
 	Object model.Cake
 }
 
-func (parser CakeParser) CreateActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) DeleteActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) GeneralActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) UpdateActivity(action string) interface{} {
-	return parser.Brief()
-}
-
 func (parser CakeParser) Briefs() []interface{} {
 	var result []interface{}
 	for _, obj := range parser.Array {
@@ -42,7 +26,7 @@ func (parser CakeParser) Brief() interface{} {
 		"description": cake.Description,
 		"margin":      cake.Margin,
 		"price":       cake.Price,
-		"unit":        constant.AllUnitOfMeasure{}.IDAndName(cake.UnitId),
+		"unit":        constant.UnitOfMeasure{}.IDAndName(cake.UnitId),
 		"stock":       cake.Stock,
 		"image":       cake.Image,
 		"createdAt":   cake.CreatedAt.Format("02/01/2006 15:04"),
@@ -66,7 +50,7 @@ func (parser CakeParser) First() interface{} {
 		"description": cake.Description,
 		"margin":      cake.Margin,
 		"price":       cake.Price,
-		"unit":        constant.AllUnitOfMeasure{}.IDAndName(cake.UnitId),
+		"unit":        constant.UnitOfMeasure{}.IDAndName(cake.UnitId),
 		"stock":       cake.Stock,
 		"createdAt":   cake.CreatedAt.Format("02/01/2006 15:04"),
 		"updatedAt":   cake.UpdatedAt.Format("02/01/2006 15:04"),
@@ -74,4 +58,20 @@ func (parser CakeParser) First() interface{} {
 		"costs":       costs,
 		"image":       cake.Image,
 	}
+}
+
+func (parser CakeParser) CreateActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser CakeParser) UpdateActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser CakeParser) DeleteActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser CakeParser) GeneralActivity(action string) interface{} {
+	return parser.First()
 }

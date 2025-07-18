@@ -6,15 +6,15 @@ import (
 
 type Cake struct {
 	xtrememodel.BaseModel
+	UnitId      int     `gorm:"column:unitId;null"`
 	Name        string  `gorm:"column:name;type:varchar(250);not null"`
-	Description string  `gorm:"column:description;type:text;default:null"`
+	Description *string `gorm:"column:description;type:text"`
 	Margin      float64 `gorm:"column:margin;not null"`
-	Price       float64 `gorm:"column:sellPrice;not null"`
-	UnitId      int     `gorm:"column:unitId;null"`                          // Unit of measurement for the cake
-	Stock       int     `gorm:"column:stock;default:0"`                      // Stock quantity of the cake
-	Image       string  `gorm:"column:image;type:varchar(255);default:null"` // Image path for the cake
+	Price       float64 `gorm:"column:price;not null"`
+	Stock       int     `gorm:"column:stock;default:0"`
+	Image       string  `gorm:"column:image;type:varchar(255);default:null"`
 
-	Recipes []CakeIngredient `gorm:"foreignKey:CakeId"` // Recipes associated with the cake
+	Recipes []CakeIngredient `gorm:"foreignKey:CakeId"`
 	Costs   []CakeCost       `gorm:"foreignKey:CakeId"`
 }
 

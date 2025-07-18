@@ -9,11 +9,12 @@ import (
 )
 
 type CakeForm struct {
-	Name        string               `json:"name" validate:"required,max=250"`
-	Description string               `json:"description"`
-	Margin      float64              `json:"margin" validate:"required,gte=0"`
-	UnitId      int                  `json:"unitId" validate:"max=50"`
-	Stock       int                  `json:"stock" validate:"gte=0"`
+	Name        string  `json:"name" validate:"required,max=250"`
+	Description *string `json:"description"`
+	Margin      float64 `json:"margin" validate:"required,gte=0"`
+	UnitId      int     `json:"unitId" validate:"required"`
+	Stock       int     `json:"stock" validate:"gte=0"`
+
 	Ingredients []CakeIngredientForm `json:"ingredients" validate:"required,dive"`
 	Costs       []CakeCostForm       `json:"costs" validate:"required,dive"`
 	Request     *http.Request
@@ -28,10 +29,10 @@ type CakeIngredientForm struct {
 }
 
 type CakeCostForm struct {
-	ID         uint    `json:"id"`
-	CostTypeId int     `json:"typeId" validate:"required,max=100"`
-	Cost       float64 `json:"cost" validate:"required,gte=0"`
-	Deleted    bool    `json:"deleted"`
+	ID      uint    `json:"id"`
+	TypeId  int     `json:"typeId" validate:"required,max=100"`
+	Price   float64 `json:"price" validate:"required,gte=0"`
+	Deleted bool    `json:"deleted"`
 }
 
 func (f *CakeForm) Validate() {
@@ -43,7 +44,7 @@ func (f *CakeForm) APIParse(r *http.Request) {
 	formValue := r.MultipartForm.Value
 
 	f.Name = formValue["name"][0]
-	f.Description = formValue["description"][0]
+	f.Description = &formValue["description"][0]
 	f.Margin = xtremepkg.ToFloat64(formValue["margin"][0])
 	f.UnitId = xtremepkg.ToInt(formValue["unitId"][0])
 	f.Stock = xtremepkg.ToInt(formValue["stock"][0])
@@ -76,8 +77,8 @@ func (f *CakeForm) APIParse(r *http.Request) {
 		costTypeKey := fmt.Sprintf("costs[%d][typeId]", i)
 		if costTypeValues, exists := formValue[costTypeKey]; exists {
 			var compCost CakeCostForm
-			compCost.CostTypeId = xtremepkg.ToInt(costTypeValues[0])
-			compCost.Cost = xtremepkg.ToFloat64(formValue[fmt.Sprintf("costs[%d][cost]", i)][0])
+			compCost.TypeId = xtremepkg.ToInt(costTypeValues[0])
+			compCost.Price = xtremepkg.ToFloat64(formValue[fmt.Sprintf("costs[%d][cost]", i)][0])
 
 			idKey := fmt.Sprintf("costs[%d][id]", i)
 			if idValues, exists := formValue[idKey]; exists && len(idValues) > 0 {

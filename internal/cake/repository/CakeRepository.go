@@ -19,9 +19,10 @@ type CakeRepository interface {
 	core.PaginateRepository[model.Cake]
 	core.FirstIdRepository[model.Cake]
 
-	Store(form formpkg.CakeForm, sellPrice float64, image string) model.Cake
+	Store(form formpkg.CakeForm, sellPrice float64) model.Cake
 	Delete(cake model.Cake)
-	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake
+	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake
+	UpdateImage(cake model.Cake, image string) model.Cake
 	FindByIds(ids []any) []model.Cake
 
 	SaveRecipes(cake model.Cake, recipes []formpkg.CakeIngredientForm) []model.CakeIngredient
@@ -48,13 +49,9 @@ func (repo *cakeRepository) SetTransaction(tx *gorm.DB) {
 	repo.transaction = tx
 }
 
-// -- Preload necessary relations for the model ---
-
 func (repo *cakeRepository) PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB {
 	return query.Preload("Recipes.Ingredient").Preload("Costs")
 }
-
-// -- Public operations that interact with the database ---
 
 func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Cake {
 	var cake model.Cake
@@ -100,7 +97,7 @@ func (repo *cakeRepository) FindByIds(ids []any) []model.Cake {
 	return cakes
 }
 
-func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64, image string) model.Cake {
+func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) model.Cake {
 	cake := model.Cake{
 		Name:        form.Name,
 		Description: form.Description,
@@ -108,7 +105,6 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64, imag
 		Price:       sellPrice,
 		UnitId:      form.UnitId,
 		Stock:       form.Stock,
-		Image:       image,
 	}
 
 	err := repo.transaction.Create(&cake).Error
@@ -119,20 +115,28 @@ func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64, imag
 	return cake
 }
 
-func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64, image string) model.Cake {
+func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake {
 	cake.Name = form.Name
 	cake.Description = form.Description
 	cake.Margin = form.Margin
 	cake.Price = sellPrice
 	cake.UnitId = form.UnitId
 	cake.Stock = form.Stock
-	cake.Image = image
 
 	err := repo.transaction.Save(&cake).Error
 	if err != nil {
 		errorpkg.ErrXtremeCakeSave(err.Error())
 	}
 
+	return cake
+}
+
+func (repo *cakeRepository) UpdateImage(cake model.Cake, image string) model.Cake {
+	cake.Image = image
+	err := repo.transaction.Save(&cake).Error
+	if err != nil {
+		errorpkg.ErrXtremeCakeSave(err.Error())
+	}
 	return cake
 }
 
@@ -143,95 +147,95 @@ func (repo *cakeRepository) Delete(cake model.Cake) {
 	}
 }
 
-func (repo *cakeRepository) SaveRecipes(cake model.Cake, form []formpkg.CakeIngredientForm) []model.CakeIngredient {
-	var toDelete []uint
-	var toUpdate []model.CakeIngredient
-	var toCreate []model.CakeIngredient
+func (repo *cakeRepository) SaveRecipes(cake model.Cake, requests []formpkg.CakeIngredientForm) []model.CakeIngredient {
+	var recipes []model.CakeIngredient
 
-	existingRecipes := repo.getExistingRecipes(cake)
-	existingMap := make(map[uint]model.CakeIngredient)
-	for _, existing := range existingRecipes {
-		existingMap[existing.ID] = existing
-	}
+	for _, request := range requests {
+		var recipe model.CakeIngredient
+		if request.ID > 0 {
+			if request.Deleted {
+				err := repo.transaction.Where("id = ?", request.ID).Delete(&model.CakeIngredient{}).Error
+				if err != nil {
+					errorpkg.ErrXtremeCakeRecipeDelete(err.Error())
+				}
+			} else {
+				repo.transaction.Preload("Ingredient").First(&recipe, "id = ?", request.ID)
+				if recipe.ID == 0 {
+					errorpkg.ErrXtremeCakeRecipeGet("ID not found")
+				}
 
-	for _, f := range form {
-		if f.Deleted {
-			toDelete = append(toDelete, f.ID)
+				recipe.IngredientId = request.IngredientId
+				recipe.Amount = request.Amount
+				recipe.UnitId = request.UnitId
+				err := repo.transaction.Save(&recipe).Error
+				if err != nil {
+					errorpkg.ErrXtremeCakeRecipeSave(err.Error())
+				}
+			}
 		} else {
-			cakeRecipe := model.CakeIngredient{
+			recipe = model.CakeIngredient{
 				CakeId:       cake.ID,
-				IngredientId: f.IngredientId,
-				Amount:       f.Amount,
-				UnitId:       f.UnitId,
+				IngredientId: request.IngredientId,
+				Amount:       request.Amount,
+				UnitId:       request.UnitId,
 			}
+			err := repo.transaction.Save(&recipe).Error
+			repo.transaction.Preload("Ingredient").First(&recipe, "id = ?", recipe.ID)
+			if err != nil {
+				errorpkg.ErrXtremeCakeRecipeSave(err.Error())
+			}
+		}
 
-			if f.ID > 0 { // Update existing
-				cakeRecipe.ID = f.ID
-				toUpdate = append(toUpdate, cakeRecipe)
-			} else { // Create new
-				toCreate = append(toCreate, cakeRecipe)
-			}
+		if recipe.ID > 0 {
+			recipes = append(recipes, recipe)
 		}
 	}
 
-	if err := repo.batchDeleteRecipes(toDelete); err != nil {
-		errorpkg.ErrXtremeCakeRecipeDelete(err.Error())
-	}
-
-	if err := repo.batchUpdateRecipes(toUpdate); err != nil {
-		errorpkg.ErrXtremeCakeRecipeSave(err.Error())
-	}
-
-	if err := repo.batchCreateRecipes(toCreate); err != nil {
-		errorpkg.ErrXtremeCakeRecipeSave(err.Error())
-	}
-
-	return append(toUpdate, toCreate...)
+	return recipes
 }
 
-func (repo *cakeRepository) SaveCosts(cake model.Cake, form []formpkg.CakeCostForm) []model.CakeCost {
-	var toDelete []uint
-	var toUpdate []model.CakeCost
-	var toCreate []model.CakeCost
+func (repo *cakeRepository) SaveCosts(cake model.Cake, requests []formpkg.CakeCostForm) []model.CakeCost {
+	var costs []model.CakeCost
 
-	existingCosts := repo.getExistingCosts(cake)
-	existingMap := make(map[uint]model.CakeCost)
-	for _, existing := range existingCosts {
-		existingMap[existing.ID] = existing
-	}
+	for _, request := range requests {
+		var cost model.CakeCost
+		if request.ID > 0 {
+			if request.Deleted {
+				err := repo.transaction.Where("id = ?", request.ID).Delete(&model.CakeCost{}).Error
+				if err != nil {
+					errorpkg.ErrXtremeCakeCostDelete(err.Error())
+				}
+			} else {
+				repo.transaction.First(&cost, "id = ?", request.ID)
+				if cost.ID == 0 {
+					errorpkg.ErrXtremeCakeCostGet("ID not found")
+				}
 
-	for _, f := range form {
-		if f.Deleted {
-			toDelete = append(toDelete, f.ID)
+				cost.TypeId = request.TypeId
+				cost.Price = request.Price
+				err := repo.transaction.Save(&cost).Error
+				if err != nil {
+					errorpkg.ErrXtremeCakeCostSave(err.Error())
+				}
+			}
 		} else {
-			cakeCost := model.CakeCost{
+			cost = model.CakeCost{
 				CakeId: cake.ID,
-				TypeId: f.CostTypeId,
-				Cost:   f.Cost,
+				TypeId: request.TypeId,
+				Price:  request.Price,
 			}
+			err := repo.transaction.Save(&cost).Error
+			if err != nil {
+				errorpkg.ErrXtremeCakeCostSave(err.Error())
+			}
+		}
 
-			if f.ID > 0 { // Update existing
-				cakeCost.ID = f.ID
-				toUpdate = append(toUpdate, cakeCost)
-			} else { // Create new
-				toCreate = append(toCreate, cakeCost)
-			}
+		if cost.ID > 0 {
+			costs = append(costs, cost)
 		}
 	}
 
-	if err := repo.batchDeleteCosts(toDelete); err != nil {
-		errorpkg.ErrXtremeCakeCostDelete(err.Error())
-	}
-
-	if err := repo.batchUpdateCosts(toUpdate); err != nil {
-		errorpkg.ErrXtremeCakeCostSave(err.Error())
-	}
-
-	if err := repo.batchCreateCosts(toCreate); err != nil {
-		errorpkg.ErrXtremeCakeCostSave(err.Error())
-	}
-
-	return append(toUpdate, toCreate...)
+	return costs
 }
 
 func (repo *cakeRepository) DeleteRecipes(cake model.Cake) {
@@ -246,82 +250,4 @@ func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
 	if err != nil {
 		errorpkg.ErrXtremeCakeCostDelete(err.Error())
 	}
-}
-
-// -- Private helper sections for the repository ---
-
-func (repo *cakeRepository) getExistingRecipes(cake model.Cake) []model.CakeIngredient {
-	var recipes []model.CakeIngredient
-	repo.transaction.Where("\"cakeId\" = ?", cake.ID).Find(&recipes)
-	return recipes
-}
-
-func (repo *cakeRepository) batchDeleteRecipes(ids []uint) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.CakeIngredient{}).Error
-}
-
-func (repo *cakeRepository) batchUpdateRecipes(recipes []model.CakeIngredient) error {
-	if len(recipes) == 0 {
-		return nil
-	}
-
-	for i := range recipes {
-		repo.transaction.Save(&recipes[i])
-		repo.transaction.Preload("Ingredient").First(&recipes[i], recipes[i].ID)
-	}
-
-	return nil
-}
-
-func (repo *cakeRepository) batchCreateRecipes(recipes []model.CakeIngredient) error {
-	if len(recipes) == 0 {
-		return nil
-	}
-
-	repo.transaction.Create(&recipes)
-	for i := range recipes {
-		repo.transaction.Preload("Ingredient").First(&recipes[i], recipes[i].ID)
-	}
-
-	return nil
-}
-
-func (repo *cakeRepository) getExistingCosts(cake model.Cake) []model.CakeCost {
-	var costs []model.CakeCost
-	repo.transaction.Where("\"cakeId\" = ?", cake.ID).Find(&costs)
-	return costs
-}
-
-func (repo *cakeRepository) batchDeleteCosts(ids []uint) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	return repo.transaction.Where("\"id\" IN ?", ids).Delete(&model.CakeCost{}).Error
-}
-
-func (repo *cakeRepository) batchUpdateCosts(costs []model.CakeCost) error {
-	if len(costs) == 0 {
-		return nil
-	}
-
-	for _, cost := range costs {
-		err := repo.transaction.Save(&cost).Error
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (repo *cakeRepository) batchCreateCosts(costs []model.CakeCost) error {
-	if len(costs) == 0 {
-		return nil
-	}
-
-	return repo.transaction.Create(&costs).Error
 }

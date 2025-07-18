@@ -36,7 +36,7 @@ func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredi
 
 		ingredient = srv.repository.Store(form)
 
-		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_CREATE).
+		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.CakeComponentIngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_CREATE).
 			Save(fmt.Sprintf("Created new ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
@@ -51,11 +51,11 @@ func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredi
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.repository.SetTransaction(tx)
 
-		act := activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_UPDATE)
+		act := activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.CakeComponentIngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_UPDATE)
 
 		ingredient = srv.repository.Update(ingredient, form)
 
-		act.SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_UPDATE).
+		act.SetParser(&cakeparser.CakeComponentIngredientParser{Object: ingredient}).SetNewProperty(constant.ACTION_UPDATE).
 			Save(fmt.Sprintf("Updated ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil
@@ -71,7 +71,7 @@ func (srv *cakeComponentIngredientService) Delete(id any) bool {
 		srv.repository.SetTransaction(tx)
 		srv.repository.Delete(ingredient)
 
-		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.IngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_DELETE).
+		activity.UseActivity{}.SetReference(ingredient).SetParser(&cakeparser.CakeComponentIngredientParser{Object: ingredient}).SetOldProperty(constant.ACTION_DELETE).
 			Save(fmt.Sprintf("Deleted ingredient: %s [%d]", ingredient.Name, ingredient.ID))
 
 		return nil

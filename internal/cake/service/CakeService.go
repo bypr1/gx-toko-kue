@@ -6,7 +6,6 @@ import (
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
 	"service/internal/pkg/constant"
-	errorpkg "service/internal/pkg/error"
 	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 	"service/internal/pkg/parser"
@@ -34,15 +33,17 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 	var cake model.Cake
 	srv.prepare()
 
+	sellPrice := srv.calculateSellPrice(form)
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.repository.SetTransaction(tx)
 
-		cake = srv.repository.Store(form, srv.calculateSellPrice(form), srv.uploadFile(form))
-		recipes := srv.repository.SaveRecipes(cake, form.Ingredients)
-		costs := srv.repository.SaveCosts(cake, form.Costs)
+		cake = srv.repository.Store(form, sellPrice)
+		cake.Recipes = srv.repository.SaveRecipes(cake, form.Ingredients)
+		cake.Costs = srv.repository.SaveCosts(cake, form.Costs)
 
-		cake.Recipes = append(cake.Recipes, recipes...)
-		cake.Costs = append(cake.Costs, costs...)
+		if image := srv.uploadImage(form); image != "" {
+			cake = srv.repository.UpdateImage(cake, image)
+		}
 
 		activity.UseActivity{}.SetReference(cake).SetParser(&parser.CakeParser{Object: cake}).SetNewProperty(constant.ACTION_CREATE).
 			Save(fmt.Sprintf("Created new cake: %s [%d]", cake.Name, cake.ID))
@@ -56,6 +57,7 @@ func (srv *cakeService) Create(form form.CakeForm) model.Cake {
 func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
 	cake := srv.prepareWithData(id)
 
+	sellPrice := srv.calculateSellPrice(form)
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
 		srv.repository.SetTransaction(tx)
 
@@ -64,12 +66,13 @@ func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
 			SetParser(&parser.CakeParser{Object: cake}).
 			SetOldProperty(constant.ACTION_UPDATE)
 
-		cake = srv.repository.Update(cake, form, srv.calculateSellPrice(form), srv.uploadFile(form))
-		recipes := srv.repository.SaveRecipes(cake, form.Ingredients)
-		costs := srv.repository.SaveCosts(cake, form.Costs)
+		cake = srv.repository.Update(cake, form, sellPrice)
+		cake.Recipes = srv.repository.SaveRecipes(cake, form.Ingredients)
+		cake.Costs = srv.repository.SaveCosts(cake, form.Costs)
 
-		cake.Recipes = append(cake.Recipes, recipes...)
-		cake.Costs = append(cake.Costs, costs...)
+		if image := srv.uploadImage(form); image != "" {
+			cake = srv.repository.UpdateImage(cake, image)
+		}
 
 		act.SetParser(&parser.CakeParser{Object: cake}).
 			SetNewProperty(constant.ACTION_UPDATE).
@@ -119,7 +122,7 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 
 	// Add additional costs
 	for _, cost := range form.Costs {
-		sellPrice += cost.Cost
+		sellPrice += cost.Price
 	}
 
 	// Calculate sell price based on margin
@@ -130,18 +133,6 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	return sellPrice
 }
 
-func (srv *cakeService) uploadFile(form form.CakeForm) string {
-	uploader := xtremefs.Uploader{Path: constant.PathImageCake(), IsPublic: true}
-	filePath, err := uploader.MoveFile(form.Request, "image")
-	if err != nil {
-		errorpkg.ErrXtremeCakeCostSave("Unable to upload file: " + err.Error())
-	}
-
-	storage := xtremefs.Storage{IsPublic: uploader.IsPublic}
-
-	return storage.GetFullPathURL(filePath.(string))
-}
-
 func (srv *cakeService) prepare() {
 	srv.repository = repository.NewCakeRepository()
 }
@@ -149,4 +140,16 @@ func (srv *cakeService) prepare() {
 func (srv *cakeService) prepareWithData(id any) model.Cake {
 	srv.prepare()
 	return srv.repository.FirstById(id)
+}
+
+func (srv *cakeService) uploadImage(form form.CakeForm) string {
+	uploader := xtremefs.Uploader{Path: constant.PathImageCake(), IsPublic: true}
+	filePath, err := uploader.MoveFile(form.Request, "image")
+	if err != nil {
+		return ""
+	}
+
+	storage := xtremefs.Storage{IsPublic: uploader.IsPublic}
+
+	return storage.GetFullPathURL(filePath.(string))
 }

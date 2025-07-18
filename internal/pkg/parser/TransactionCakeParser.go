@@ -9,28 +9,17 @@ type TransactionCakeParser struct {
 	Object model.TransactionCake
 }
 
-func (parser TransactionCakeParser) CreateActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser TransactionCakeParser) DeleteActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser TransactionCakeParser) GeneralActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser TransactionCakeParser) UpdateActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser TransactionCakeParser) Get() []interface{} {
-	var result []interface{}
-	for _, obj := range parser.Array {
-		result = append(result, TransactionCakeParser{Object: obj}.First())
+func (parser TransactionCakeParser) Brief() interface{} {
+	txCakeObj := parser.Object
+	return map[string]interface{}{
+		"id":        txCakeObj.ID,
+		"cakeId":    txCakeObj.CakeId,
+		"quantity":  txCakeObj.Quantity,
+		"price":     txCakeObj.Price,
+		"subTotal":  txCakeObj.SubTotal,
+		"createdAt": txCakeObj.CreatedAt.Format("02/01/2006 15:04"),
+		"updatedAt": txCakeObj.UpdatedAt.Format("02/01/2006 15:04"),
 	}
-	return result
 }
 
 func (parser TransactionCakeParser) First() interface{} {
@@ -47,23 +36,18 @@ func (parser TransactionCakeParser) First() interface{} {
 	}
 }
 
-func (parser TransactionCakeParser) Briefs() []interface{} {
-	var result []interface{}
-	for _, obj := range parser.Array {
-		result = append(result, TransactionCakeParser{Object: obj}.Brief())
-	}
-	return result
+func (parser TransactionCakeParser) CreateActivity(action string) interface{} {
+	return parser.Brief()
 }
 
-func (parser TransactionCakeParser) Brief() interface{} {
-	txCakeObj := parser.Object
-	return map[string]interface{}{
-		"id":        txCakeObj.ID,
-		"cakeId":    txCakeObj.CakeId,
-		"quantity":  txCakeObj.Quantity,
-		"price":     txCakeObj.Price,
-		"subTotal":  txCakeObj.SubTotal,
-		"createdAt": txCakeObj.CreatedAt.Format("02/01/2006 15:04"),
-		"updatedAt": txCakeObj.UpdatedAt.Format("02/01/2006 15:04"),
-	}
+func (parser TransactionCakeParser) UpdateActivity(action string) interface{} {
+	return parser.Brief()
+}
+
+func (parser TransactionCakeParser) DeleteActivity(action string) interface{} {
+	return parser.Brief()
+}
+
+func (parser TransactionCakeParser) GeneralActivity(action string) interface{} {
+	return parser.Brief()
 }

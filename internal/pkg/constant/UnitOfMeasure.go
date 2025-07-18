@@ -21,9 +21,9 @@ const UNIT_OF_MEASURE_CUP = "cup"
 const UNIT_OF_MEASURE_SLICE_ID = 9
 const UNIT_OF_MEASURE_SLICE = "slice"
 
-type AllUnitOfMeasure struct{}
+type UnitOfMeasure struct{}
 
-func (s AllUnitOfMeasure) OptionIDNames() map[int]string {
+func (s UnitOfMeasure) OptionIDNames() map[int]string {
 	return map[int]string{
 		UNIT_OF_MEASURE_GRAM_ID:       UNIT_OF_MEASURE_GRAM,
 		UNIT_OF_MEASURE_KILOGRAM_ID:   UNIT_OF_MEASURE_KILOGRAM,
@@ -37,11 +37,11 @@ func (s AllUnitOfMeasure) OptionIDNames() map[int]string {
 	}
 }
 
-func (s AllUnitOfMeasure) IDAndName(id int) map[string]interface{} {
+func (s UnitOfMeasure) IDAndName(id int) map[string]interface{} {
 	return core.IDName{}.IDAndName(id, s)
 }
 
-func (s AllUnitOfMeasure) Display(id int) string {
+func (s UnitOfMeasure) Display(id int) string {
 	return core.IDName{}.Display(id, s)
 }
 

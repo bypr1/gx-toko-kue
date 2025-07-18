@@ -9,8 +9,8 @@ import (
 
 type Transaction struct {
 	xtrememodel.BaseModel
-	TransactionDate time.Time `gorm:"column:transactionDate;not null"`
-	TotalAmount     float64   `gorm:"column:totalAmount;not null"`
+	Date       time.Time `gorm:"column:date;not null"`
+	TotalPrice float64   `gorm:"column:totalPrice;not null"`
 
 	Cakes []TransactionCake `gorm:"foreignKey:TransactionId"`
 }
@@ -24,6 +24,6 @@ func (t Transaction) SetReference() uint {
 }
 
 func (t Transaction) GetTransactionNumber() string {
-	date := t.TransactionDate.Format("20060102")
+	date := t.Date.Format("20060102")
 	return fmt.Sprintf("TRX-%s%06d", date, t.BaseModel.ID)
 }
