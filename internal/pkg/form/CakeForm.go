@@ -3,24 +3,23 @@ package form
 import (
 	"fmt"
 	"net/http"
-	"service/internal/pkg/core"
 
 	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
 	xtremepkg "github.com/globalxtreme/go-core/v2/pkg"
 )
 
 type CakeForm struct {
-	Name        string                        `json:"name" validate:"required,max=250"`
-	Description string                        `json:"description"`
-	Margin      float64                       `json:"margin" validate:"required,gte=0"`
-	UnitId      int                           `json:"unitId" validate:"max=50"`
-	Stock       int                           `json:"stock" validate:"gte=0"`
-	Ingredients []CakeFormComponentIngredient `json:"ingredients" validate:"required,dive"`
-	Costs       []CakeFormComponentCost       `json:"costs" validate:"required,dive"`
+	Name        string               `json:"name" validate:"required,max=250"`
+	Description string               `json:"description"`
+	Margin      float64              `json:"margin" validate:"required,gte=0"`
+	UnitId      int                  `json:"unitId" validate:"max=50"`
+	Stock       int                  `json:"stock" validate:"gte=0"`
+	Ingredients []CakeIngredientForm `json:"ingredients" validate:"required,dive"`
+	Costs       []CakeCostForm       `json:"costs" validate:"required,dive"`
 	Request     *http.Request
 }
 
-type CakeFormComponentIngredient struct {
+type CakeIngredientForm struct {
 	ID           uint    `json:"id"`
 	IngredientId uint    `json:"ingredientId" validate:"required,gt=0"`
 	Amount       float64 `json:"amount" validate:"required,gte=0"`
@@ -28,7 +27,7 @@ type CakeFormComponentIngredient struct {
 	Deleted      bool    `json:"deleted"`
 }
 
-type CakeFormComponentCost struct {
+type CakeCostForm struct {
 	ID         uint    `json:"id"`
 	CostTypeId int     `json:"typeId" validate:"required,max=100"`
 	Cost       float64 `json:"cost" validate:"required,gte=0"`
@@ -41,10 +40,6 @@ func (f *CakeForm) Validate() {
 }
 
 func (f *CakeForm) APIParse(r *http.Request) {
-	core.BaseForm{}.APIParse(r, &f)
-}
-
-func (f *CakeForm) FormParse(r *http.Request) {
 	formValue := r.MultipartForm.Value
 
 	f.Name = formValue["name"][0]
@@ -53,12 +48,12 @@ func (f *CakeForm) FormParse(r *http.Request) {
 	f.UnitId = xtremepkg.ToInt(formValue["unitId"][0])
 	f.Stock = xtremepkg.ToInt(formValue["stock"][0])
 
-	f.Ingredients = make([]CakeFormComponentIngredient, 0)
+	f.Ingredients = make([]CakeIngredientForm, 0)
 	isLooping := true
 	for i := 0; isLooping; i++ {
 		ingredientIDKey := fmt.Sprintf("ingredients[%d][ingredientId]", i)
 		if ingredientIDValues, exists := formValue[ingredientIDKey]; exists {
-			var compIngredient CakeFormComponentIngredient
+			var compIngredient CakeIngredientForm
 			compIngredient.IngredientId = uint(xtremepkg.ToInt(ingredientIDValues[0]))
 			compIngredient.Amount = xtremepkg.ToFloat64(formValue[fmt.Sprintf("ingredients[%d][amount]", i)][0])
 			compIngredient.UnitId = xtremepkg.ToInt(formValue[fmt.Sprintf("ingredients[%d][unitId]", i)][0])
@@ -75,12 +70,12 @@ func (f *CakeForm) FormParse(r *http.Request) {
 		}
 	}
 
-	f.Costs = make([]CakeFormComponentCost, 0)
+	f.Costs = make([]CakeCostForm, 0)
 	isLooping = true
 	for i := 0; isLooping; i++ {
 		costTypeKey := fmt.Sprintf("costs[%d][typeId]", i)
 		if costTypeValues, exists := formValue[costTypeKey]; exists {
-			var compCost CakeFormComponentCost
+			var compCost CakeCostForm
 			compCost.CostTypeId = xtremepkg.ToInt(costTypeValues[0])
 			compCost.Cost = xtremepkg.ToFloat64(formValue[fmt.Sprintf("costs[%d][cost]", i)][0])
 

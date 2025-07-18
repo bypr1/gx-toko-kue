@@ -39,3 +39,11 @@ func RandInt(min, max int) int {
 	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(max-min+1) + min
 }
+
+func ParseDate(dateString string) time.Time {
+	date, err := time.Parse("02/01/2006", dateString)
+	if err != nil {
+		return time.Now()
+	}
+	return date
+}

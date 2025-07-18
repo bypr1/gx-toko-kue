@@ -23,7 +23,7 @@ func (seed *CakeIngredientSeeder) Seed() {
 			Name:        ingredient["name"].(string),
 			Description: ingredient["description"].(string),
 			Price:       ingredient["unit_price"].(float64),
-			UnitId:      ingredient["unit"].(int),
+			UnitId:      ingredient["unitId"].(int),
 		})
 	}
 }
@@ -36,25 +36,25 @@ func (seed *CakeIngredientSeeder) setIngredientsData() []map[string]interface{} 
 			"name":        "Eggs",
 			"description": "Fresh chicken eggs",
 			"unit_price":  2000.0,
-			"unit":        1,
+			"unitId":      1,
 		},
 		{
 			"name":        "Flour",
 			"description": "All-purpose wheat flour",
 			"unit_price":  10000.0,
-			"unit":        2,
+			"unitId":      2,
 		},
 		{
 			"name":        "Sugar",
 			"description": "Granulated white sugar",
 			"unit_price":  12000.0,
-			"unit":        2,
+			"unitId":      2,
 		},
 		{
 			"name":        "Chocolate",
 			"description": "Chocolate compound for baking",
 			"unit_price":  25000.0,
-			"unit":        2,
+			"unitId":      2,
 		},
 	}
 }

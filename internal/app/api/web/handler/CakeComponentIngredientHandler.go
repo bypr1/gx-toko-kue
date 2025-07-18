@@ -5,8 +5,6 @@ import (
 
 	"service/internal/cake/repository"
 	"service/internal/cake/service"
-	"service/internal/pkg/constant"
-	"service/internal/pkg/core"
 	"service/internal/pkg/form"
 	cakeparser "service/internal/pkg/parser"
 
@@ -68,12 +66,5 @@ func (IngredientHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	srv.Delete(mux.Vars(r)["id"])
 
 	res := xtremeres.Response{}
-	res.Success(w)
-}
-
-func (IngredientHandler) GetUnitOfMeasure(w http.ResponseWriter, r *http.Request) {
-	result := core.IDName{}.Get(constant.CakeIngredientUnitOfMeasure{})
-
-	res := xtremeres.Response{Array: result}
 	res.Success(w)
 }

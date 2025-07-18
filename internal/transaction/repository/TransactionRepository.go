@@ -6,7 +6,7 @@ import (
 	"service/internal/pkg/config"
 	"service/internal/pkg/core"
 	errorpkg "service/internal/pkg/error"
-	formpkg "service/internal/pkg/form"
+	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 	"service/internal/transaction/excel"
 
@@ -22,11 +22,11 @@ type TransactionRepository interface {
 	core.FindRepository[model.Transaction]
 	FindForReport(parameter url.Values) []excel.TransactionReport
 
-	Store(form formpkg.TransactionForm, totalAmount float64) model.Transaction
+	Store(form form.TransactionForm, totalAmount float64) model.Transaction
 	Delete(transaction model.Transaction)
-	Update(transaction model.Transaction, form formpkg.TransactionForm, totalAmount float64) model.Transaction
+	Update(transaction model.Transaction, form form.TransactionForm, totalAmount float64) model.Transaction
 
-	SaveCakes(transaction model.Transaction, cakeForm []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake
+	SaveCakes(transaction model.Transaction, form []form.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake
 	DeleteCakes(transaction model.Transaction)
 
 	PreloadCakes(query *gorm.DB) *gorm.DB
@@ -144,9 +144,9 @@ func (repo *transactionRepository) Paginate(parameter url.Values) ([]model.Trans
 	return transactions, pagination, nil
 }
 
-func (repo *transactionRepository) Store(form formpkg.TransactionForm, totalAmount float64) model.Transaction {
+func (repo *transactionRepository) Store(form form.TransactionForm, totalAmount float64) model.Transaction {
 	transaction := model.Transaction{
-		TransactionDate: form.GetTransactionDate(),
+		TransactionDate: core.ParseDate(form.TransactionDate),
 		TotalAmount:     totalAmount,
 	}
 
@@ -158,8 +158,8 @@ func (repo *transactionRepository) Store(form formpkg.TransactionForm, totalAmou
 	return transaction
 }
 
-func (repo *transactionRepository) Update(transaction model.Transaction, form formpkg.TransactionForm, totalAmount float64) model.Transaction {
-	transaction.TransactionDate = form.GetTransactionDate()
+func (repo *transactionRepository) Update(transaction model.Transaction, form form.TransactionForm, totalAmount float64) model.Transaction {
+	transaction.TransactionDate = core.ParseDate(form.TransactionDate)
 	transaction.TotalAmount = totalAmount
 
 	err := repo.transaction.Save(&transaction).Error
@@ -184,7 +184,7 @@ func (repo *transactionRepository) DeleteCakes(transaction model.Transaction) {
 	}
 }
 
-func (repo *transactionRepository) SaveCakes(transaction model.Transaction, cakeForm []formpkg.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake {
+func (repo *transactionRepository) SaveCakes(transaction model.Transaction, form []form.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake {
 	var toDelete []uint
 	var toUpdate []model.TransactionCake
 	var toCreate []model.TransactionCake
@@ -195,23 +195,23 @@ func (repo *transactionRepository) SaveCakes(transaction model.Transaction, cake
 		existingMap[existing.ID] = existing
 	}
 
-	for _, cakeForm := range cakeForm {
-		if cakeForm.Deleted {
-			toDelete = append(toDelete, cakeForm.ID)
+	for _, f := range form {
+		if f.Deleted {
+			toDelete = append(toDelete, f.ID)
 		} else {
-			cake := cakes[cakeForm.CakeID]
-			subTotal := float64(cakeForm.Quantity) * cake.Price
+			cake := cakes[f.CakeID]
+			subTotal := float64(f.Quantity) * cake.Price
 
 			transactionCake := model.TransactionCake{
 				TransactionId: transaction.ID,
-				CakeId:        cakeForm.CakeID,
-				Quantity:      cakeForm.Quantity,
+				CakeId:        f.CakeID,
+				Quantity:      f.Quantity,
 				Price:         cake.Price,
 				SubTotal:      subTotal,
 			}
 
-			if cakeForm.ID > 0 { // Update existing
-				transactionCake.ID = cakeForm.ID
+			if f.ID > 0 { // Update existing
+				transactionCake.ID = f.ID
 				toUpdate = append(toUpdate, transactionCake)
 			} else { // Create new
 				toCreate = append(toCreate, transactionCake)

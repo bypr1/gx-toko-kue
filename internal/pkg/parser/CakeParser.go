@@ -42,8 +42,7 @@ func (parser CakeParser) Brief() interface{} {
 		"description": cake.Description,
 		"margin":      cake.Margin,
 		"price":       cake.Price,
-		"unitId":      cake.UnitId,
-		"unitName":    constant.AllUnitOfMeasure{}.Display(cake.UnitId),
+		"unit":        constant.AllUnitOfMeasure{}.IDAndName(cake.UnitId),
 		"stock":       cake.Stock,
 		"image":       cake.Image,
 		"createdAt":   cake.CreatedAt.Format("02/01/2006 15:04"),
@@ -51,15 +50,11 @@ func (parser CakeParser) Brief() interface{} {
 	}
 }
 
-func (parser CakeParser) First(withIngredients bool) interface{} {
+func (parser CakeParser) First() interface{} {
 	cake := parser.Object
 	var recipes []interface{}
 	for _, recipe := range cake.Recipes {
-		if !withIngredients {
-			recipes = append(recipes, CakeRecipeParser{Object: recipe}.FirstWithoutIngredient())
-		} else {
-			recipes = append(recipes, CakeRecipeParser{Object: recipe}.First())
-		}
+		recipes = append(recipes, CakeRecipeParser{Object: recipe}.First())
 	}
 	var costs []interface{}
 	for _, cost := range cake.Costs {
@@ -71,8 +66,7 @@ func (parser CakeParser) First(withIngredients bool) interface{} {
 		"description": cake.Description,
 		"margin":      cake.Margin,
 		"price":       cake.Price,
-		"unitId":      cake.UnitId,
-		"unitName":    constant.AllUnitOfMeasure{}.Display(cake.UnitId),
+		"unit":        constant.AllUnitOfMeasure{}.IDAndName(cake.UnitId),
 		"stock":       cake.Stock,
 		"createdAt":   cake.CreatedAt.Format("02/01/2006 15:04"),
 		"updatedAt":   cake.UpdatedAt.Format("02/01/2006 15:04"),

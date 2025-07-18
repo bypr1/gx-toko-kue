@@ -3,7 +3,6 @@ package form
 import (
 	"net/http"
 	"service/internal/pkg/core"
-	"time"
 
 	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
 )
@@ -28,12 +27,4 @@ func (f *TransactionForm) Validate() {
 func (f *TransactionForm) APIParse(r *http.Request) {
 	form := core.BaseForm{}
 	form.APIParse(r, &f)
-}
-
-func (f *TransactionForm) GetTransactionDate() time.Time {
-	date, err := time.Parse("2006-01-02", f.TransactionDate)
-	if err != nil {
-		return time.Now()
-	}
-	return date
 }

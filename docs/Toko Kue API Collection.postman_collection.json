@@ -15,58 +15,6 @@
 					"name": "Ingredients",
 					"item": [
 						{
-							"name": "Component: Static",
-							"item": [
-								{
-									"name": "Get Unit Of Measures",
-									"request": {
-										"method": "GET",
-										"header": [],
-										"url": {
-											"raw": "{{base_url}}/cakes/components/ingredients/statics/unitofmeasures",
-											"host": [
-												"{{base_url}}"
-											],
-											"path": [
-												"cakes",
-												"components",
-												"ingredients",
-												"statics",
-												"unitofmeasures"
-											]
-										}
-									},
-									"response": []
-								}
-							]
-						},
-						{
-							"name": "Component: Static",
-							"item": [
-								{
-									"name": "Get Unit Of Measures",
-									"request": {
-										"method": "GET",
-										"header": [],
-										"url": {
-											"raw": "{{base_url}}/cakes/components/ingredients/statics/unitofmeasures",
-											"host": [
-												"{{base_url}}"
-											],
-											"path": [
-												"cakes",
-												"components",
-												"ingredients",
-												"statics",
-												"unitofmeasures"
-											]
-										}
-									},
-									"response": []
-								}
-							]
-						},
-						{
 							"name": "Get",
 							"request": {
 								"method": "GET",
@@ -769,7 +717,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"transactionDate\": \"2025-07-12\",\n    \"cakes\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"cakeId\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"raw": "{\n    \"transactionDate\": \"12/08/2025\",\n    \"cakes\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 2\n        },\n        {\n            \"cakeId\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"

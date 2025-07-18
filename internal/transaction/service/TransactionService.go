@@ -116,10 +116,10 @@ func (srv *transactionService) ReportExcel(parameter url.Values) string {
 	return filename
 }
 
-func (srv *transactionService) getCakes(cakeFormItems []form.TransactionCakeForm) map[uint]model.Cake {
+func (srv *transactionService) getCakes(items []form.TransactionCakeForm) map[uint]model.Cake {
 	var cakeIDs []any
-	for _, cf := range cakeFormItems {
-		cakeIDs = append(cakeIDs, cf.CakeID)
+	for _, it := range items {
+		cakeIDs = append(cakeIDs, it.CakeID)
 	}
 
 	cakes := srv.cakeRepository.FindByIds(cakeIDs)
@@ -130,11 +130,11 @@ func (srv *transactionService) getCakes(cakeFormItems []form.TransactionCakeForm
 	return cakeMap
 }
 
-func (srv *transactionService) calculateTotalPrice(cakeFormItems []form.TransactionCakeForm, cakeMap map[uint]model.Cake) float64 {
+func (srv *transactionService) calculateTotalPrice(items []form.TransactionCakeForm, cakeMap map[uint]model.Cake) float64 {
 	var totalAmount float64
-	for _, cf := range cakeFormItems {
-		if cake, exists := cakeMap[cf.CakeID]; exists {
-			totalAmount += float64(cf.Quantity) * cake.Price
+	for _, it := range items {
+		if cake, exists := cakeMap[it.CakeID]; exists {
+			totalAmount += float64(it.Quantity) * cake.Price
 		}
 	}
 	return totalAmount
