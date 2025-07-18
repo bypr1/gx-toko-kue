@@ -255,11 +255,9 @@ func (repo *transactionRepository) batchUpdateCakes(cakes []model.TransactionCak
 		return nil
 	}
 
-	for _, cake := range cakes {
-		err := repo.transaction.Save(&cake).Error
-		if err != nil {
-			return err
-		}
+	for i := range cakes {
+		repo.transaction.Save(&cakes[i])
+		repo.transaction.Preload("Cake").First(&cakes[i], cakes[i].ID)
 	}
 	return nil
 }
@@ -269,5 +267,10 @@ func (repo *transactionRepository) batchCreateCakes(cakes []model.TransactionCak
 		return nil
 	}
 
-	return repo.transaction.Create(&cakes).Error
+	repo.transaction.Create(&cakes)
+	for i := range cakes {
+		repo.transaction.Preload("Cake").First(&cakes[i], cakes[i].ID)
+	}
+
+	return nil
 }

@@ -8,7 +8,7 @@ type CakeIngredient struct {
 	xtrememodel.BaseModel
 	CakeId       uint    `gorm:"column:cakeId;not null"`
 	IngredientId uint    `gorm:"column:ingredientId;not null"`
-	Amount       float64 `gorm:"column:amount;not null"` // Amount of ingredient used in the recipe
+	Amount       float64 `gorm:"column:amount;not null"`
 	UnitId       int     `gorm:"column:unitId;not null"`
 
 	Cake       Cake                    `gorm:"foreignKey:CakeId"`

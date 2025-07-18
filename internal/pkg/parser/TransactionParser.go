@@ -41,6 +41,7 @@ func (parser TransactionParser) First() interface{} {
 	}
 	return map[string]interface{}{
 		"id":              transactionObj.ID,
+		"number":          transactionObj.GetTransactionNumber(),
 		"transactionDate": transactionObj.TransactionDate.Format("02/01/2006"),
 		"totalAmount":     transactionObj.TotalAmount,
 		"createdAt":       transactionObj.CreatedAt.Format("02/01/2006 15:04"),
@@ -61,6 +62,7 @@ func (parser TransactionParser) Brief() interface{} {
 	transactionObj := parser.Object
 	return map[string]interface{}{
 		"id":              transactionObj.ID,
+		"number":          transactionObj.GetTransactionNumber(),
 		"transactionDate": transactionObj.TransactionDate.Format("02/01/2006"),
 		"totalAmount":     transactionObj.TotalAmount,
 		"createdAt":       transactionObj.CreatedAt.Format("02/01/2006 15:04"),
