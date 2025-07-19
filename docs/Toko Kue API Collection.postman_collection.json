@@ -202,14 +202,14 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/cakes/statics/unitofmeasures",
+									"raw": "{{base_url}}/cakes/statics/units",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"cakes",
 										"statics",
-										"unitofmeasures"
+										"units"
 									]
 								}
 							},

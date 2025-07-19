@@ -38,7 +38,7 @@ func cakeRouter(router *mux.Router) {
 
 	var cakeStaticHandler handler.CakeStaticHandler
 	cakeStaticRouter := router.PathPrefix("/statics").Subrouter()
-	cakeStaticRouter.HandleFunc("/unitofmeasures", cakeStaticHandler.GetUnitOfMeasure).Methods("GET")
+	cakeStaticRouter.HandleFunc("/units", cakeStaticHandler.GetUnitOfMeasure).Methods("GET")
 	cakeStaticRouter.HandleFunc("/costs", cakeStaticHandler.GetCostType).Methods("GET")
 
 	var cakeHandler handler.CakeHandler
