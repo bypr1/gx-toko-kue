@@ -11,6 +11,7 @@ func Register(router *mux.Router) {
 	testingRouter(router)
 	cakeRouter(router)
 	transactionRouter(router)
+	customerRouter(router)
 }
 
 func activityRouter(router *mux.Router) {
@@ -60,4 +61,11 @@ func transactionRouter(router *mux.Router) {
 	router.HandleFunc("/{id}", transactionHandler.Detail).Methods("GET")
 	router.HandleFunc("/{id}", transactionHandler.Update).Methods("PUT")
 	router.HandleFunc("/{id}", transactionHandler.Delete).Methods("DELETE")
+}
+
+func customerRouter(router *mux.Router) {
+	router = router.PathPrefix("/customers").Subrouter()
+
+	var customerHandler handler.CustomerHandler
+	router.HandleFunc("", customerHandler.Create).Methods("POST")
 }

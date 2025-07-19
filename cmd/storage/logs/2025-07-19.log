@@ -1,0 +1,129 @@
+2025/07/19 08:57:09 [ERROR]: panic: &{{{400 Missing Required Parameter  [map[message:Field validation for 'MimeType' failed on the 'required' tag param:MimeType] map[message:Field validation for 'Branches' failed on the 'required' tag param:Branches]]} false}}
+2025/07/19 08:57:09 [ERROR]: goroutine 20 [running]:
+runtime/debug.Stack()
+	/usr/local/Cellar/go/1.24.0/libexec/src/runtime/debug/stack.go:26 +0x6b
+github.com/globalxtreme/go-core/v2/pkg.LogError({0x60e5dc0, 0xc00046b3c0}, 0x0)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/pkg/log.go:43 +0x357
+github.com/globalxtreme/go-core/v2/middleware.PanicHandler.func1.1()
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/panicHandler.go:35 +0x239
+panic({0x60e5dc0?, 0xc00046b3c0?})
+	/usr/local/Cellar/go/1.24.0/libexec/src/runtime/panic.go:787 +0x136
+github.com/globalxtreme/go-core/v2/response.Error(0x190, {0x5f8887c, 0x1a}, {0x0, 0x0}, 0x0, {0x60fcee0, 0xc0000ac570})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/response/error.go:8 +0xef
+github.com/globalxtreme/go-core/v2/response.ErrXtremeValidation({0xc000442360, 0x2, 0x2})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/response/error.go:34 +0x51
+github.com/globalxtreme/go-core/v2/middleware.Validator.Make({}, {0x6190ea0, 0xc0000c6580})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/validator.go:24 +0x39f
+service/internal/pkg/form.(*CustomerForm).Validate(0xc0000c6580)
+	/Users/user/Work/gx/toko-kue/internal/pkg/form/CustomerForm.go:64 +0x25
+service/internal/app/api/web/handler.CustomerHandler.Create({}, {0x630cb88, 0xc000000700}, 0xc00046f400)
+	/Users/user/Work/gx/toko-kue/internal/app/api/web/handler/CustomerHandler.go:16 +0xb5
+net/http.HandlerFunc.ServeHTTP(0xc000611800, {0x630cb88, 0xc000000700}, 0xc00046f400)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/globalxtreme/go-core/v2/middleware.PrepareRequestHandler.func1({0x630cb88, 0xc000000700}, 0xc00046f400)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/prepareRequestHandler.go:31 +0x3f9
+net/http.HandlerFunc.ServeHTTP(0xc0000ac258, {0x630cb88, 0xc000000700}, 0xc00046f400)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/globalxtreme/go-core/v2/middleware.PanicHandler.func1({0x630cb88, 0xc000000700}, 0xc00046f400)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/panicHandler.go:49 +0xde
+net/http.HandlerFunc.ServeHTTP(0xc0000ac270, {0x630cb88, 0xc000000700}, 0xc00046f400)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/gorilla/mux.(*Router).ServeHTTP(0xc000145ec0, {0x630cb88, 0xc000000700}, 0xc00046f400)
+	/Users/user/go/pkg/mod/github.com/gorilla/mux@v1.8.1/mux.go:212 +0x2bb
+github.com/rs/cors.(*Cors).Handler.func1({0x630cb88, 0xc000000700}, 0xc00046f180)
+	/Users/user/go/pkg/mod/github.com/rs/cors@v1.11.1/cors.go:289 +0x2fd
+net/http.HandlerFunc.ServeHTTP(0xc000442dc0, {0x630cb88, 0xc000000700}, 0xc00046f180)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+net/http.serverHandler.ServeHTTP({0xc0001c4500}, {0x630cb88, 0xc000000700}, 0xc00046f180)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:3301 +0x257
+net/http.(*conn).serve(0xc000418ab0, {0x630f810, 0xc00043f4a0})
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2102 +0x1b75
+created by net/http.(*Server).Serve in goroutine 1
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:3454 +0xa9a
+
+2025/07/19 08:59:19 [ERROR]: panic: &{{{400 Missing Required Parameter  [map[message:Field validation for 'MimeType' failed on the 'required' tag param:MimeType] map[message:Field validation for 'Branches' failed on the 'required' tag param:Branches]]} false}}
+2025/07/19 08:59:19 [ERROR]: goroutine 22 [running]:
+runtime/debug.Stack()
+	/usr/local/Cellar/go/1.24.0/libexec/src/runtime/debug/stack.go:26 +0x6b
+github.com/globalxtreme/go-core/v2/pkg.LogError({0x60e5dc0, 0xc00046b400}, 0x0)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/pkg/log.go:43 +0x357
+github.com/globalxtreme/go-core/v2/middleware.PanicHandler.func1.1()
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/panicHandler.go:35 +0x239
+panic({0x60e5dc0?, 0xc00046b400?})
+	/usr/local/Cellar/go/1.24.0/libexec/src/runtime/panic.go:787 +0x136
+github.com/globalxtreme/go-core/v2/response.Error(0x190, {0x5f8887c, 0x1a}, {0x0, 0x0}, 0x0, {0x60fcee0, 0xc0000ac540})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/response/error.go:8 +0xef
+github.com/globalxtreme/go-core/v2/response.ErrXtremeValidation({0xc000442240, 0x2, 0x2})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/response/error.go:34 +0x51
+github.com/globalxtreme/go-core/v2/middleware.Validator.Make({}, {0x6190ea0, 0xc0000e8420})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/validator.go:24 +0x39f
+service/internal/pkg/form.(*CustomerForm).Validate(0xc0000e8420)
+	/Users/user/Work/gx/toko-kue/internal/pkg/form/CustomerForm.go:64 +0x25
+service/internal/app/api/web/handler.CustomerHandler.Create({}, {0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/Users/user/Work/gx/toko-kue/internal/app/api/web/handler/CustomerHandler.go:16 +0xb5
+net/http.HandlerFunc.ServeHTTP(0xc000611800, {0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/globalxtreme/go-core/v2/middleware.PrepareRequestHandler.func1({0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/prepareRequestHandler.go:31 +0x3f9
+net/http.HandlerFunc.ServeHTTP(0xc0000ac258, {0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/globalxtreme/go-core/v2/middleware.PanicHandler.func1({0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/panicHandler.go:49 +0xde
+net/http.HandlerFunc.ServeHTTP(0xc0000ac288, {0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/gorilla/mux.(*Router).ServeHTTP(0xc000145ec0, {0x630cb88, 0xc000000000}, 0xc00046e3c0)
+	/Users/user/go/pkg/mod/github.com/gorilla/mux@v1.8.1/mux.go:212 +0x2bb
+github.com/rs/cors.(*Cors).Handler.func1({0x630cb88, 0xc000000000}, 0xc00046e000)
+	/Users/user/go/pkg/mod/github.com/rs/cors@v1.11.1/cors.go:289 +0x2fd
+net/http.HandlerFunc.ServeHTTP(0xc000442dc0, {0x630cb88, 0xc000000000}, 0xc00046e000)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+net/http.serverHandler.ServeHTTP({0xc0001c4500}, {0x630cb88, 0xc000000000}, 0xc00046e000)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:3301 +0x257
+net/http.(*conn).serve(0xc000418090, {0x630f810, 0xc00043e8c0})
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2102 +0x1b75
+created by net/http.(*Server).Serve in goroutine 1
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:3454 +0xa9a
+
+2025/07/19 08:59:33 [ERROR]: panic: &{{{400 Missing Required Parameter  [map[message:Field validation for 'Branches' failed on the 'required' tag param:Branches]]} false}}
+2025/07/19 08:59:33 [ERROR]: goroutine 37 [running]:
+runtime/debug.Stack()
+	/usr/local/Cellar/go/1.24.0/libexec/src/runtime/debug/stack.go:26 +0x6b
+github.com/globalxtreme/go-core/v2/pkg.LogError({0x70cdd60, 0xc00005d440}, 0x0)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/pkg/log.go:43 +0x357
+github.com/globalxtreme/go-core/v2/middleware.PanicHandler.func1.1()
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/panicHandler.go:35 +0x239
+panic({0x70cdd60?, 0xc00005d440?})
+	/usr/local/Cellar/go/1.24.0/libexec/src/runtime/panic.go:787 +0x136
+github.com/globalxtreme/go-core/v2/response.Error(0x190, {0x6f7087c, 0x1a}, {0x0, 0x0}, 0x0, {0x70e4e80, 0xc00000e360})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/response/error.go:8 +0xef
+github.com/globalxtreme/go-core/v2/response.ErrXtremeValidation({0xc000050530, 0x1, 0x1})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/response/error.go:34 +0x51
+github.com/globalxtreme/go-core/v2/middleware.Validator.Make({}, {0x7178de0, 0xc0005fa580})
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/validator.go:24 +0x39f
+service/internal/pkg/form.(*CustomerForm).Validate(0xc0005fa580)
+	/Users/user/Work/gx/toko-kue/internal/pkg/form/CustomerForm.go:64 +0x25
+service/internal/app/api/web/handler.CustomerHandler.Create({}, {0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/Users/user/Work/gx/toko-kue/internal/app/api/web/handler/CustomerHandler.go:16 +0xb5
+net/http.HandlerFunc.ServeHTTP(0xc0000b4eb0, {0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/globalxtreme/go-core/v2/middleware.PrepareRequestHandler.func1({0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/prepareRequestHandler.go:31 +0x3f9
+net/http.HandlerFunc.ServeHTTP(0xc000188a08, {0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/globalxtreme/go-core/v2/middleware.PanicHandler.func1({0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/Users/user/go/pkg/mod/github.com/globalxtreme/go-core/v2@v2.1.11/middleware/panicHandler.go:49 +0xde
+net/http.HandlerFunc.ServeHTTP(0xc000188a20, {0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+github.com/gorilla/mux.(*Router).ServeHTTP(0xc0000fa300, {0x72f4ac8, 0xc0001d4620}, 0xc00024a140)
+	/Users/user/go/pkg/mod/github.com/gorilla/mux@v1.8.1/mux.go:212 +0x2bb
+github.com/rs/cors.(*Cors).Handler.func1({0x72f4ac8, 0xc0001d4620}, 0xc00023fe00)
+	/Users/user/go/pkg/mod/github.com/rs/cors@v1.11.1/cors.go:289 +0x2fd
+net/http.HandlerFunc.ServeHTTP(0xc00003d520, {0x72f4ac8, 0xc0001d4620}, 0xc00023fe00)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2294 +0x33
+net/http.serverHandler.ServeHTTP({0xc000202500}, {0x72f4ac8, 0xc0001d4620}, 0xc00023fe00)
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:3301 +0x257
+net/http.(*conn).serve(0xc000472a20, {0x72f7750, 0xc0004996d0})
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:2102 +0x1b75
+created by net/http.(*Server).Serve in goroutine 1
+	/usr/local/Cellar/go/1.24.0/libexec/src/net/http/server.go:3454 +0xa9a
+
