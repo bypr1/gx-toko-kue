@@ -116,6 +116,15 @@ func (srv *transactionService) ReportExcel(parameter url.Values) string {
 	return filename
 }
 
+func (srv *transactionService) prepare() {
+	srv.repository = repository.NewTransactionRepository(nil)
+}
+
+func (srv *transactionService) prepareWithData(id string) model.Transaction {
+	srv.prepare()
+	return srv.repository.FirstById(id)
+}
+
 func (srv *transactionService) getCakes(items []form.TransactionCakeForm) map[uint]model.Cake {
 	var cakeIDs []any
 	for _, it := range items {
@@ -138,15 +147,6 @@ func (srv *transactionService) calculateTotalPrice(items []form.TransactionCakeF
 		}
 	}
 	return totalAmount
-}
-
-func (srv *transactionService) prepare() {
-	srv.repository = repository.NewTransactionRepository(nil)
-}
-
-func (srv *transactionService) prepareWithData(id any) model.Transaction {
-	srv.prepare()
-	return srv.repository.FirstById(id)
 }
 
 func (srv *transactionService) setRepositoriesWithTransaction(tx *gorm.DB) {

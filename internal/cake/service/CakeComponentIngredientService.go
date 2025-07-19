@@ -15,8 +15,8 @@ import (
 
 type CakeComponentIngredientService interface {
 	Create(form form.CakeComponentIngredientForm) model.CakeComponentIngredient
-	Update(form form.CakeComponentIngredientForm, id any) model.CakeComponentIngredient
-	Delete(id any) bool
+	Update(form form.CakeComponentIngredientForm, id string) model.CakeComponentIngredient
+	Delete(id string) bool
 }
 
 func NewIngredientService() CakeComponentIngredientService {
@@ -45,7 +45,7 @@ func (srv *cakeComponentIngredientService) Create(form form.CakeComponentIngredi
 	return ingredient
 }
 
-func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredientForm, id any) model.CakeComponentIngredient {
+func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredientForm, id string) model.CakeComponentIngredient {
 	ingredient := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
@@ -64,7 +64,7 @@ func (srv *cakeComponentIngredientService) Update(form form.CakeComponentIngredi
 	return ingredient
 }
 
-func (srv *cakeComponentIngredientService) Delete(id any) bool {
+func (srv *cakeComponentIngredientService) Delete(id string) bool {
 	ingredient := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
@@ -83,7 +83,7 @@ func (srv *cakeComponentIngredientService) prepare() {
 	srv.repository = repository.NewCakeComponentIngredientRepository(nil)
 }
 
-func (srv *cakeComponentIngredientService) prepareWithData(id any) model.CakeComponentIngredient {
+func (srv *cakeComponentIngredientService) prepareWithData(id string) model.CakeComponentIngredient {
 	srv.prepare()
 	return srv.repository.FirstById(id)
 }

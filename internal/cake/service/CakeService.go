@@ -106,7 +106,7 @@ func (srv *cakeService) prepare() {
 	srv.repository = repository.NewCakeRepository()
 }
 
-func (srv *cakeService) prepareWithData(id any) model.Cake {
+func (srv *cakeService) prepareWithData(id string) model.Cake {
 	srv.prepare()
 	return srv.repository.FirstById(id)
 }
