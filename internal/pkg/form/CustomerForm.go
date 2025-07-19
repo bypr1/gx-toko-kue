@@ -2,9 +2,9 @@ package form
 
 import (
 	"net/http"
+	"service/zzz"
 
 	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
-	"github.com/go-playground/form/v4"
 )
 
 type CustomerIdentityPhotoForm struct {
@@ -67,7 +67,7 @@ func (rule *CustomerForm) Validate() {
 func (rule *CustomerForm) APIParse(r *http.Request) {
 	rule.Request = r
 
-	decoder := form.NewDecoder()
+	decoder := zzz.NewDecoder()
 
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
