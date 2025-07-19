@@ -102,6 +102,15 @@ func (srv *cakeService) Delete(id string) bool {
 	return true
 }
 
+func (srv *cakeService) prepare() {
+	srv.repository = repository.NewCakeRepository()
+}
+
+func (srv *cakeService) prepareWithData(id any) model.Cake {
+	srv.prepare()
+	return srv.repository.FirstById(id)
+}
+
 func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	var sellPrice float64
 
@@ -131,15 +140,6 @@ func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
 	}
 
 	return sellPrice
-}
-
-func (srv *cakeService) prepare() {
-	srv.repository = repository.NewCakeRepository()
-}
-
-func (srv *cakeService) prepareWithData(id any) model.Cake {
-	srv.prepare()
-	return srv.repository.FirstById(id)
 }
 
 func (srv *cakeService) uploadImage(form form.CakeForm) string {
