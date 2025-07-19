@@ -38,11 +38,24 @@ func (parser CakeParser) First() interface{} {
 	cake := parser.Object
 	var recipes []interface{}
 	for _, recipe := range cake.Recipes {
-		recipes = append(recipes, CakeRecipeParser{Object: recipe}.First())
+		recipes = append(recipes, map[string]interface{}{
+			"id":     recipe.ID,
+			"amount": recipe.Amount,
+			"unit":   constant.UnitOfMeasure{}.IDAndName(recipe.UnitId),
+			"ingredient": map[string]interface{}{
+				"id":   recipe.IngredientId,
+				"name": recipe.Ingredient.Name,
+				"unit": constant.UnitOfMeasure{}.IDAndName(recipe.Ingredient.UnitId),
+			},
+		})
 	}
 	var costs []interface{}
 	for _, cost := range cake.Costs {
-		costs = append(costs, CakeCostParser{Object: cost}.First())
+		costs = append(costs, map[string]interface{}{
+			"id":    cost.ID,
+			"type":  constant.CakeCostType{}.IDAndName(cost.TypeId),
+			"price": cost.Price,
+		})
 	}
 	return map[string]interface{}{
 		"id":          cake.ID,
