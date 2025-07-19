@@ -33,7 +33,15 @@ func (parser TransactionParser) First() interface{} {
 	transactionObj := parser.Object
 	var cakes []interface{}
 	for _, cake := range transactionObj.Cakes {
-		cakes = append(cakes, TransactionCakeParser{Object: cake}.First())
+		cakes = append(cakes, map[string]interface{}{
+			"id":        cake.ID,
+			"quantity":  cake.Quantity,
+			"price":     cake.Price,
+			"subTotal":  cake.SubTotal,
+			"cake":      CakeParser{Object: cake.Cake}.Brief(),
+			"createdAt": cake.CreatedAt.Format("02/01/2006 15:04"),
+			"updatedAt": cake.UpdatedAt.Format("02/01/2006 15:04"),
+		})
 	}
 	return map[string]interface{}{
 		"id":         transactionObj.ID,
@@ -43,38 +51,6 @@ func (parser TransactionParser) First() interface{} {
 		"createdAt":  transactionObj.CreatedAt.Format("02/01/2006 15:04"),
 		"updatedAt":  transactionObj.UpdatedAt.Format("02/01/2006 15:04"),
 		"cakes":      cakes,
-	}
-}
-
-type TransactionCakeParser struct {
-	Array  []model.TransactionCake
-	Object model.TransactionCake
-}
-
-func (parser TransactionCakeParser) Brief() interface{} {
-	txCakeObj := parser.Object
-	return map[string]interface{}{
-		"id":        txCakeObj.ID,
-		"cakeId":    txCakeObj.CakeId,
-		"quantity":  txCakeObj.Quantity,
-		"price":     txCakeObj.Price,
-		"subTotal":  txCakeObj.SubTotal,
-		"createdAt": txCakeObj.CreatedAt.Format("02/01/2006 15:04"),
-		"updatedAt": txCakeObj.UpdatedAt.Format("02/01/2006 15:04"),
-	}
-}
-
-func (parser TransactionCakeParser) First() interface{} {
-	txCakeObj := parser.Object
-	return map[string]interface{}{
-		"id":            txCakeObj.ID,
-		"transactionId": txCakeObj.TransactionId,
-		"quantity":      txCakeObj.Quantity,
-		"price":         txCakeObj.Price,
-		"subTotal":      txCakeObj.SubTotal,
-		"cake":          CakeParser{Object: txCakeObj.Cake}.Brief(),
-		"createdAt":     txCakeObj.CreatedAt.Format("02/01/2006 15:04"),
-		"updatedAt":     txCakeObj.UpdatedAt.Format("02/01/2006 15:04"),
 	}
 }
 
