@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "33549a21-7961-4089-a558-e1c2b81712af",
-		"name": "Toko Kue API Collection Copy 2",
+		"_postman_id": "fdb3a8fc-2852-49a9-ba50-0b69e41c2dea",
+		"name": "Toko Kue API Collection v5",
 		"description": "API collection for Cake Shop management system with Cake and Ingredient endpoints",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "46467053",
-		"_collection_link": "https://bypr1-807314.postman.co/workspace/Bypr1's-Workspace~32291f27-6aa5-44c8-8846-3c76c0b6106e/collection/46467053-33549a21-7961-4089-a558-e1c2b81712af?action=share&source=collection_link&creator=46467053"
+		"_collection_link": "https://bypr1-807314.postman.co/workspace/Bypr1's-Workspace~32291f27-6aa5-44c8-8846-3c76c0b6106e/collection/46467053-fdb3a8fc-2852-49a9-ba50-0b69e41c2dea?action=share&source=collection_link&creator=46467053"
 	},
 	"item": [
 		{
@@ -66,7 +66,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}/cakes/components/ingredients/{{ingredient_id}}",
+									"raw": "{{base_url}}/cakes/components/ingredients/:id",
 									"host": [
 										"{{base_url}}"
 									],
@@ -74,7 +74,14 @@
 										"cakes",
 										"components",
 										"ingredients",
-										"{{ingredient_id}}"
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Ingredient ID"
+										}
 									]
 								}
 							},
@@ -133,7 +140,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{base_url}}/cakes/components/ingredients/{{ingredient_id}}",
+									"raw": "{{base_url}}/cakes/components/ingredients/:id",
 									"host": [
 										"{{base_url}}"
 									],
@@ -141,7 +148,14 @@
 										"cakes",
 										"components",
 										"ingredients",
-										"{{ingredient_id}}"
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Ingredient ID to update"
+										}
 									]
 								}
 							},
@@ -158,7 +172,7 @@
 									}
 								],
 								"url": {
-									"raw": "{{base_url}}/cakes/components/ingredients/{{ingredient_id}}",
+									"raw": "{{base_url}}/cakes/components/ingredients/:id",
 									"host": [
 										"{{base_url}}"
 									],
@@ -166,7 +180,14 @@
 										"cakes",
 										"components",
 										"ingredients",
-										"{{ingredient_id}}"
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Ingredient ID to delete"
+										}
 									]
 								}
 							},
@@ -202,14 +223,26 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{base_url}}/cakes/statics/unitofmeasures",
+									"raw": "{{base_url}}/cakes/statics/units?isIngredient=&isCake=",
 									"host": [
 										"{{base_url}}"
 									],
 									"path": [
 										"cakes",
 										"statics",
-										"unitofmeasures"
+										"units"
+									],
+									"query": [
+										{
+											"key": "isIngredient",
+											"value": "",
+											"description": "Filter units for ingredients"
+										},
+										{
+											"key": "isCake",
+											"value": "",
+											"description": "Filter units for cakes"
+										}
 									]
 								}
 							},
@@ -267,18 +300,18 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/cakes/{{cake_id}}",
+							"raw": "{{base_url}}/cakes/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"cakes",
-								"{{cake_id}}"
+								":id"
 							],
 							"variable": [
 								{
-									"key": "cake_id",
-									"value": "1",
+									"key": "id",
+									"value": "2",
 									"description": "Cake ID"
 								}
 							]
@@ -322,32 +355,38 @@
 								{
 									"key": "ingredients[0][ingredientId]",
 									"value": "1",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[0][amount]",
 									"value": "2.5",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[0][unitId]",
 									"value": "1",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[1][ingredientId]",
 									"value": "2",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[1][amount]",
 									"value": "6",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[1][unitId]",
 									"value": "2",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "costs[0][typeId]",
@@ -355,7 +394,7 @@
 									"type": "text"
 								},
 								{
-									"key": "costs[0][cost]",
+									"key": "costs[0][price]",
 									"value": "50000",
 									"type": "text"
 								},
@@ -365,7 +404,7 @@
 									"type": "text"
 								},
 								{
-									"key": "costs[1][cost]",
+									"key": "costs[1][price]",
 									"value": "15000",
 									"type": "text"
 								},
@@ -387,7 +426,138 @@
 						},
 						"description": "Create cake using multipart form data with proper field names matching the form structure"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Create",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Chocolate Cake",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Delicious chocolate cake with rich flavor",
+											"type": "text"
+										},
+										{
+											"key": "margin",
+											"value": "25.5",
+											"type": "text"
+										},
+										{
+											"key": "unitId",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "stock",
+											"value": "10",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][ingredientId]",
+											"value": "1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[0][amount]",
+											"value": "2.5",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[0][unitId]",
+											"value": "1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[1][ingredientId]",
+											"value": "2",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[1][amount]",
+											"value": "6",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[1][unitId]",
+											"value": "2",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "costs[0][typeId]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "costs[0][price]",
+											"value": "50000",
+											"type": "text"
+										},
+										{
+											"key": "costs[1][typeId]",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "costs[1][price]",
+											"value": "15000",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/path/to/cake-image.jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/cakes",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 19 Jul 2025 04:30:56 GMT"
+								},
+								{
+									"key": "Content-Length",
+									"value": "461"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": {\n        \"code\": 200,\n        \"message\": \"Success\",\n        \"internalMsg\": \"\",\n        \"attributes\": null\n    },\n    \"result\": {\n        \"costs\": [\n            {\n                \"id\": 50,\n                \"price\": 50000,\n                \"type\": {\n                    \"id\": 1,\n                    \"name\": \"labor\"\n                }\n            },\n            {\n                \"id\": 51,\n                \"price\": 15000,\n                \"type\": {\n                    \"id\": 2,\n                    \"name\": \"packaging\"\n                }\n            }\n        ],\n        \"createdAt\": \"19/07/2025 12:30\",\n        \"description\": \"Delicious chocolate cake with rich flavor\",\n        \"id\": 25,\n        \"image\": \"\",\n        \"margin\": 25.5,\n        \"name\": \"Chocolate Cake\",\n        \"price\": 81575,\n        \"recipes\": null,\n        \"stock\": 10,\n        \"unit\": {\n            \"id\": 1,\n            \"name\": \"gram\"\n        },\n        \"updatedAt\": \"19/07/2025 12:30\"\n    }\n}"
+						}
+					]
 				},
 				{
 					"name": "Update",
@@ -423,49 +593,60 @@
 									"type": "text"
 								},
 								{
+									"key": "ingredients[0][id]",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[0][deleted]",
+									"value": "true",
+									"type": "text"
+								},
+								{
 									"key": "ingredients[0][ingredientId]",
 									"value": "1",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[0][amount]",
 									"value": "3.0",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[0][unitId]",
 									"value": "1",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "ingredients[1][id]",
+									"value": "4",
+									"type": "text"
+								},
+								{
+									"key": "ingredients[1][deleted]",
+									"value": "true",
 									"type": "text"
 								},
 								{
 									"key": "ingredients[1][ingredientId]",
 									"value": "2",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[1][amount]",
 									"value": "8",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "ingredients[1][unitId]",
 									"value": "2",
-									"type": "text"
-								},
-								{
-									"key": "ingredients[2][ingredientId]",
-									"value": "3",
-									"type": "text"
-								},
-								{
-									"key": "ingredients[2][amount]",
-									"value": "1.5",
-									"type": "text"
-								},
-								{
-									"key": "ingredients[2][unitId]",
-									"value": "1",
-									"type": "text"
+									"type": "text",
+									"disabled": true
 								},
 								{
 									"key": "costs[0][typeId]",
@@ -473,7 +654,7 @@
 									"type": "text"
 								},
 								{
-									"key": "costs[0][cost]",
+									"key": "costs[0][price]",
 									"value": "75000",
 									"type": "text"
 								},
@@ -483,7 +664,7 @@
 									"type": "text"
 								},
 								{
-									"key": "costs[1][cost]",
+									"key": "costs[1][price]",
 									"value": "20000",
 									"type": "text"
 								},
@@ -493,7 +674,7 @@
 									"type": "text"
 								},
 								{
-									"key": "costs[2][cost]",
+									"key": "costs[2][price]",
 									"value": "10000",
 									"type": "text"
 								},
@@ -505,18 +686,332 @@
 							]
 						},
 						"url": {
-							"raw": "{{base_url}}/cakes/1",
+							"raw": "{{base_url}}/cakes/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"cakes",
-								"1"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "Cake ID to update"
+								}
 							]
 						},
 						"description": "Update cake using multipart form data with proper field names matching the form structure"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Update",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Premium Chocolate Cake",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Premium chocolate cake with premium ingredients",
+											"type": "text"
+										},
+										{
+											"key": "margin",
+											"value": "30.0",
+											"type": "text"
+										},
+										{
+											"key": "unitId",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "stock",
+											"value": "15",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][ingredientId]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][amount]",
+											"value": "3.0",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][unitId]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[1][ingredientId]",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[1][amount]",
+											"value": "8",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[1][unitId]",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[2][ingredientId]",
+											"value": "3",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[2][amount]",
+											"value": "1.5",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[2][unitId]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "costs[0][typeId]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "costs[0][price]",
+											"value": "75000",
+											"type": "text"
+										},
+										{
+											"key": "costs[1][typeId]",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "costs[1][price]",
+											"value": "20000",
+											"type": "text"
+										},
+										{
+											"key": "costs[2][typeId]",
+											"value": "3",
+											"type": "text"
+										},
+										{
+											"key": "costs[2][price]",
+											"value": "10000",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/Users/user/Downloads/_MG_7415-removebg-preview (1).jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/cakes/:id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Cake ID to update"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						},
+						{
+							"name": "Update",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "name",
+											"value": "Premium Chocolate Cake",
+											"type": "text"
+										},
+										{
+											"key": "description",
+											"value": "Premium chocolate cake with premium ingredients",
+											"type": "text"
+										},
+										{
+											"key": "margin",
+											"value": "30.0",
+											"type": "text"
+										},
+										{
+											"key": "unitId",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "stock",
+											"value": "15",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][id]",
+											"value": "3",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][deleted]",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[0][ingredientId]",
+											"value": "1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[0][amount]",
+											"value": "3.0",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[0][unitId]",
+											"value": "1",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[1][id]",
+											"value": "4",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[1][deleted]",
+											"value": "true",
+											"type": "text"
+										},
+										{
+											"key": "ingredients[1][ingredientId]",
+											"value": "2",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[1][amount]",
+											"value": "8",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "ingredients[1][unitId]",
+											"value": "2",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "costs[0][typeId]",
+											"value": "1",
+											"type": "text"
+										},
+										{
+											"key": "costs[0][price]",
+											"value": "75000",
+											"type": "text"
+										},
+										{
+											"key": "costs[1][typeId]",
+											"value": "2",
+											"type": "text"
+										},
+										{
+											"key": "costs[1][price]",
+											"value": "20000",
+											"type": "text"
+										},
+										{
+											"key": "costs[2][typeId]",
+											"value": "3",
+											"type": "text"
+										},
+										{
+											"key": "costs[2][price]",
+											"value": "10000",
+											"type": "text"
+										},
+										{
+											"key": "image",
+											"type": "file",
+											"src": "/Users/user/Downloads/_MG_7415-removebg-preview (1).jpg"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/cakes/:id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"cakes",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "2",
+											"description": "Cake ID to update"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 19 Jul 2025 04:29:17 GMT"
+								},
+								{
+									"key": "Content-Length",
+									"value": "624"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": {\n        \"code\": 200,\n        \"message\": \"Success\",\n        \"internalMsg\": \"\",\n        \"attributes\": null\n    },\n    \"result\": {\n        \"costs\": [\n            {\n                \"id\": 47,\n                \"price\": 75000,\n                \"type\": {\n                    \"id\": 1,\n                    \"name\": \"labor\"\n                }\n            },\n            {\n                \"id\": 48,\n                \"price\": 20000,\n                \"type\": {\n                    \"id\": 2,\n                    \"name\": \"packaging\"\n                }\n            },\n            {\n                \"id\": 49,\n                \"price\": 10000,\n                \"type\": {\n                    \"id\": 3,\n                    \"name\": \"gas\"\n                }\n            }\n        ],\n        \"createdAt\": \"17/07/2025 15:40\",\n        \"description\": \"Premium chocolate cake with premium ingredients\",\n        \"id\": 2,\n        \"image\": \"http://localhost:5050/1/toko-kue/storages/images/cakes/geCUqLEAKmalzuSUOmdE1752738017346729000.png\",\n        \"margin\": 30,\n        \"name\": \"Premium Chocolate Cake\",\n        \"price\": 136500,\n        \"recipes\": null,\n        \"stock\": 15,\n        \"unit\": {\n            \"id\": 1,\n            \"name\": \"gram\"\n        },\n        \"updatedAt\": \"19/07/2025 12:29\"\n    }\n}"
+						}
+					]
 				},
 				{
 					"name": "Delete",
@@ -529,17 +1024,17 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/cakes/{{cake_id}}",
+							"raw": "{{base_url}}/cakes/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"cakes",
-								"{{cake_id}}"
+								":id"
 							],
 							"variable": [
 								{
-									"key": "cake_id",
+									"key": "id",
 									"value": "1",
 									"description": "Cake ID to delete"
 								}
@@ -599,17 +1094,17 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/cakes/{{cake_id}}",
+							"raw": "{{base_url}}/cakes/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"cakes",
-								"{{cake_id}}"
+								":id"
 							],
 							"variable": [
 								{
-									"key": "cake_id",
+									"key": "id",
 									"value": "1",
 									"description": "Cake ID to update"
 								}
@@ -691,13 +1186,19 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/transactions/4",
+							"raw": "{{base_url}}/transactions/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"transactions",
-								"4"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1"
+								}
 							]
 						},
 						"description": "Get detailed information about a specific transaction including its details"
@@ -750,7 +1251,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"date\": \"2025-07-12\",\n    \"cakes\": [\n        {\n            \"cakeId\": 1,\n            \"quantity\": 3\n        },\n        {\n            \"cakeId\": 3,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"raw": "{\n    \"date\": \"2025-07-12\",\n    \"cakes\": [\n        {\n            \"id\": 7,\n            \"cakeId\": 1,\n            \"quantity\": 3,\n            \"deleted\": true\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -758,18 +1259,88 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/transactions/1",
+							"raw": "{{base_url}}/transactions/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"transactions",
-								"1"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Transaction ID to update"
+								}
 							]
 						},
 						"description": "Update an existing transaction. This will replace all transaction details with the new ones provided."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Update",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"date\": \"2025-07-12\",\n    \"cakes\": [\n        {\n            \"id\": 7,\n            \"cakeId\": 1,\n            \"quantity\": 3,\n            \"deleted\": true\n        }\n    ]\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}/transactions/:id",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"transactions",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "1",
+											"description": "Transaction ID to update"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Origin"
+								},
+								{
+									"key": "Date",
+									"value": "Sat, 19 Jul 2025 04:56:46 GMT"
+								},
+								{
+									"key": "Content-Length",
+									"value": "242"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": {\n        \"code\": 200,\n        \"message\": \"Success\",\n        \"internalMsg\": \"\",\n        \"attributes\": null\n    },\n    \"result\": {\n        \"cakes\": null,\n        \"createdAt\": \"18/07/2025 14:38\",\n        \"date\": \"19/07/2025\",\n        \"id\": 1,\n        \"number\": \"TRX-20250719000001\",\n        \"totalPrice\": 409500,\n        \"updatedAt\": \"19/07/2025 12:56\"\n    }\n}"
+						}
+					]
 				},
 				{
 					"name": "Delete",
@@ -783,13 +1354,20 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/transactions/1",
+							"raw": "{{base_url}}/transactions/:id",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"transactions",
-								"1"
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "Transaction ID to delete"
+								}
 							]
 						},
 						"description": "Delete a transaction and all its associated transaction details"
