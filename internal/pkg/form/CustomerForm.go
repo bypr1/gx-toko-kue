@@ -2,7 +2,7 @@ package form
 
 import (
 	"net/http"
-	"service/zzz"
+	"service/internal/pkg/core"
 
 	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
 )
@@ -49,7 +49,7 @@ type CustomerForm struct {
 	CompanyName             string                    `json:"companyName" form:"companyName"`
 	CompanyAddress          string                    `json:"companyAddress" form:"companyAddress"`
 	CompanyEmail            string                    `json:"companyEmail" form:"companyEmail"`
-	Branches                []BranchForm              `json:"branches" form:"branches"`
+	Branches                []BranchForm              `json:"branches" form:"branches" validate:"omitempty,dive"`
 	CreatedByUUID           string                    `json:"createdByUUID" form:"createdByUUID"`
 	CreatedByName           string                    `json:"createdByName" form:"createdByName"`
 }
@@ -66,16 +66,6 @@ func (rule *CustomerForm) Validate() {
 
 func (rule *CustomerForm) APIParse(r *http.Request) {
 	rule.Request = r
-
-	decoder := zzz.NewDecoder()
-
-	err := r.ParseMultipartForm(32 << 20)
-	if err != nil {
-		return
-	}
-
-	err = decoder.Decode(rule, r.MultipartForm.Value)
-	if err != nil {
-		return
-	}
+	form := core.BaseForm{}
+	form.FormParse(r, &rule)
 }
