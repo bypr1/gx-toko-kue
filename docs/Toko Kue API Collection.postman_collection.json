@@ -1217,7 +1217,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"fromDate\": \"02/02/2002\",\n    \"toDate\": \"10/10/2030\",\n    \"minAmount\": \"\",\n    \"maxAmount\": \"\"\n}",
+							"raw": "{\n    \"fromDate\": \"02/02/2002\",\n    \"toDate\": \"10/10/2030\",\n    \"minAmount\": null,\n    \"maxAmount\": 20000\n}",
 							"options": {
 								"raw": {
 									"language": "json"
