@@ -21,66 +21,64 @@ const UNIT_OF_MEASURE_CUP = "cup"
 const UNIT_OF_MEASURE_SLICE_ID = 9
 const UNIT_OF_MEASURE_SLICE = "slice"
 
-type UnitOfMeasure struct{}
+type unitIsCategory int
 
-func (s UnitOfMeasure) OptionIDNames() map[int]string {
-	return map[int]string{
-		UNIT_OF_MEASURE_GRAM_ID:       UNIT_OF_MEASURE_GRAM,
-		UNIT_OF_MEASURE_KILOGRAM_ID:   UNIT_OF_MEASURE_KILOGRAM,
-		UNIT_OF_MEASURE_LITER_ID:      UNIT_OF_MEASURE_LITER,
-		UNIT_OF_MEASURE_MILLILITER_ID: UNIT_OF_MEASURE_MILLILITER,
-		UNIT_OF_MEASURE_PIECE_ID:      UNIT_OF_MEASURE_PIECE,
-		UNIT_OF_MEASURE_TABLESPOON_ID: UNIT_OF_MEASURE_TABLESPOON,
-		UNIT_OF_MEASURE_TEASPOON_ID:   UNIT_OF_MEASURE_TEASPOON,
-		UNIT_OF_MEASURE_CUP_ID:        UNIT_OF_MEASURE_CUP,
-		UNIT_OF_MEASURE_SLICE_ID:      UNIT_OF_MEASURE_SLICE,
+const (
+	UNIT_IS_BOTH unitIsCategory = iota
+	UNIT_IS_INGREDIENT
+	UNIT_IS_CAKE
+)
+
+type UnitOfMeasure struct {
+	IsCategory unitIsCategory
+}
+
+func (in UnitOfMeasure) SetIsIngredient() UnitOfMeasure {
+	in.IsCategory = UNIT_IS_INGREDIENT
+	return in
+}
+
+func (in UnitOfMeasure) SetIsCake() UnitOfMeasure {
+	in.IsCategory = UNIT_IS_CAKE
+	return in
+}
+
+func (in UnitOfMeasure) OptionIDNames() map[int]string {
+	switch in.IsCategory {
+	case UNIT_IS_INGREDIENT:
+		return map[int]string{
+			UNIT_OF_MEASURE_GRAM_ID:       UNIT_OF_MEASURE_GRAM,
+			UNIT_OF_MEASURE_KILOGRAM_ID:   UNIT_OF_MEASURE_KILOGRAM,
+			UNIT_OF_MEASURE_LITER_ID:      UNIT_OF_MEASURE_LITER,
+			UNIT_OF_MEASURE_MILLILITER_ID: UNIT_OF_MEASURE_MILLILITER,
+			UNIT_OF_MEASURE_PIECE_ID:      UNIT_OF_MEASURE_PIECE,
+			UNIT_OF_MEASURE_TABLESPOON_ID: UNIT_OF_MEASURE_TABLESPOON,
+			UNIT_OF_MEASURE_TEASPOON_ID:   UNIT_OF_MEASURE_TEASPOON,
+		}
+	case UNIT_IS_CAKE:
+		return map[int]string{
+			UNIT_OF_MEASURE_PIECE_ID: UNIT_OF_MEASURE_PIECE,
+			UNIT_OF_MEASURE_SLICE_ID: UNIT_OF_MEASURE_SLICE,
+		}
+	default:
+		return map[int]string{
+			UNIT_OF_MEASURE_GRAM_ID:       UNIT_OF_MEASURE_GRAM,
+			UNIT_OF_MEASURE_KILOGRAM_ID:   UNIT_OF_MEASURE_KILOGRAM,
+			UNIT_OF_MEASURE_LITER_ID:      UNIT_OF_MEASURE_LITER,
+			UNIT_OF_MEASURE_MILLILITER_ID: UNIT_OF_MEASURE_MILLILITER,
+			UNIT_OF_MEASURE_PIECE_ID:      UNIT_OF_MEASURE_PIECE,
+			UNIT_OF_MEASURE_TABLESPOON_ID: UNIT_OF_MEASURE_TABLESPOON,
+			UNIT_OF_MEASURE_TEASPOON_ID:   UNIT_OF_MEASURE_TEASPOON,
+			UNIT_OF_MEASURE_CUP_ID:        UNIT_OF_MEASURE_CUP,
+			UNIT_OF_MEASURE_SLICE_ID:      UNIT_OF_MEASURE_SLICE,
+		}
 	}
 }
 
-func (s UnitOfMeasure) IDAndName(id int) map[string]interface{} {
-	return core.IDName{}.IDAndName(id, s)
+func (in UnitOfMeasure) IDAndName(id int) map[string]interface{} {
+	return core.IDName{}.IDAndName(id, in)
 }
 
-func (s UnitOfMeasure) Display(id int) string {
-	return core.IDName{}.Display(id, s)
-}
-
-type CakeIngredientUnitOfMeasure struct{}
-
-func (s CakeIngredientUnitOfMeasure) OptionIDNames() map[int]string {
-	return map[int]string{
-		UNIT_OF_MEASURE_GRAM_ID:       UNIT_OF_MEASURE_GRAM,
-		UNIT_OF_MEASURE_KILOGRAM_ID:   UNIT_OF_MEASURE_KILOGRAM,
-		UNIT_OF_MEASURE_LITER_ID:      UNIT_OF_MEASURE_LITER,
-		UNIT_OF_MEASURE_MILLILITER_ID: UNIT_OF_MEASURE_MILLILITER,
-		UNIT_OF_MEASURE_PIECE_ID:      UNIT_OF_MEASURE_PIECE,
-		UNIT_OF_MEASURE_TABLESPOON_ID: UNIT_OF_MEASURE_TABLESPOON,
-		UNIT_OF_MEASURE_TEASPOON_ID:   UNIT_OF_MEASURE_TEASPOON,
-		UNIT_OF_MEASURE_CUP_ID:        UNIT_OF_MEASURE_CUP,
-	}
-}
-
-func (s CakeIngredientUnitOfMeasure) IDAndName(id int) map[string]interface{} {
-	return core.IDName{}.IDAndName(id, s)
-}
-
-func (s CakeIngredientUnitOfMeasure) Display(id int) string {
-	return core.IDName{}.Display(id, s)
-}
-
-type CakeUnitOfMeasure struct{}
-
-func (s CakeUnitOfMeasure) OptionIDNames() map[int]string {
-	return map[int]string{
-		UNIT_OF_MEASURE_PIECE_ID: UNIT_OF_MEASURE_PIECE,
-		UNIT_OF_MEASURE_SLICE_ID: UNIT_OF_MEASURE_SLICE,
-	}
-}
-
-func (s CakeUnitOfMeasure) IDAndName(id int) map[string]interface{} {
-	return core.IDName{}.IDAndName(id, s)
-}
-
-func (s CakeUnitOfMeasure) Display(id int) string {
-	return core.IDName{}.Display(id, s)
+func (in UnitOfMeasure) Display(id int) string {
+	return core.IDName{}.Display(id, in)
 }

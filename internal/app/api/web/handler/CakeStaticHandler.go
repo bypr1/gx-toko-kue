@@ -14,14 +14,14 @@ type CakeStaticHandler struct{}
 
 func (CakeStaticHandler) GetUnitOfMeasure(w http.ResponseWriter, r *http.Request) {
 	var result []interface{}
+	var uom constant.UnitOfMeasure
 
-	if xtremepkg.ToBool(r.URL.Query().Get("isIngredient")) {
-		result = core.IDName{}.Get(constant.CakeIngredientUnitOfMeasure{})
-	} else if xtremepkg.ToBool(r.URL.Query().Get("isCake")) {
-		result = core.IDName{}.Get(constant.CakeUnitOfMeasure{})
-	} else {
-		result = core.IDName{}.Get(constant.UnitOfMeasure{})
+	if isIngredient := xtremepkg.ToBool(r.URL.Query().Get("isIngredient")); isIngredient {
+		uom = uom.SetIsIngredient()
+	} else if isCake := xtremepkg.ToBool(r.URL.Query().Get("isCake")); isCake {
+		uom = uom.SetIsCake()
 	}
+	result = core.IDName{}.Get(uom)
 
 	res := xtremeres.Response{Array: result}
 	res.Success(w)

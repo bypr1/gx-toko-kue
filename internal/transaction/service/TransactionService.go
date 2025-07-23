@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"net/url"
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
 	"service/internal/pkg/constant"
@@ -22,7 +21,7 @@ type TransactionService interface {
 	Create(form form.TransactionForm) model.Transaction
 	Update(form form.TransactionForm, id string) model.Transaction
 	Delete(id string) bool
-	ReportExcel(parameter url.Values) string
+	ReportExcel(form form.TransactionReportForm) string
 }
 
 func NewTransactionService() TransactionService {
@@ -104,10 +103,10 @@ func (srv *transactionService) Delete(id string) bool {
 	return true
 }
 
-func (srv *transactionService) ReportExcel(parameter url.Values) string {
-	srv.repository = repository.NewTransactionRepository()
-	transactions := srv.repository.FindForReport(parameter)
+func (srv *transactionService) ReportExcel(form form.TransactionReportForm) string {
+	srv.prepare()
 
+	transactions := srv.repository.FindForReport(form)
 	transactionExcel := excel.TransactionExcel{
 		Transactions: transactions,
 	}
@@ -123,6 +122,11 @@ func (srv *transactionService) prepare() {
 func (srv *transactionService) prepareWithData(id string) model.Transaction {
 	srv.prepare()
 	return srv.repository.FirstById(id)
+}
+
+func (srv *transactionService) setRepositoriesWithTransaction(tx *gorm.DB) {
+	srv.repository.SetTransaction(tx)
+	srv.cakeRepository.SetTransaction(tx)
 }
 
 func (srv *transactionService) getCakes(items []form.TransactionCakeForm) map[uint]model.Cake {
@@ -147,9 +151,4 @@ func (srv *transactionService) calculateTotalPrice(items []form.TransactionCakeF
 		}
 	}
 	return totalAmount
-}
-
-func (srv *transactionService) setRepositoriesWithTransaction(tx *gorm.DB) {
-	srv.repository.SetTransaction(tx)
-	srv.cakeRepository.SetTransaction(tx)
 }

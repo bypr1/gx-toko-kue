@@ -20,7 +20,7 @@ type TransactionRepository interface {
 	core.PaginateRepository[model.Transaction]
 	core.FirstIdRepository[model.Transaction]
 	core.FindRepository[model.Transaction]
-	FindForReport(parameter url.Values) []excel.TransactionReport
+	FindForReport(form form.TransactionReportForm) []excel.TransactionReport
 
 	Store(form form.TransactionForm, totalAmount float64) model.Transaction
 	Delete(transaction model.Transaction)
@@ -91,24 +91,29 @@ func (repo *transactionRepository) Find(parameter url.Values) []model.Transactio
 	return transactions
 }
 
-func (repo *transactionRepository) FindForReport(parameter url.Values) []excel.TransactionReport {
-	fromDate, toDate := core.SetDateRange(parameter)
-
+func (repo *transactionRepository) FindForReport(form form.TransactionReportForm) []excel.TransactionReport {
 	query := config.PgSQL.
 		Select(`transactions.*, 
-                cakeItems."totalAmount" as "totalAmount", 
-                cakeItems."totalCakes" as "totalCakes"`).
-		Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate).
+                cakeItems."totalAmount" as totalAmount, 
+                cakeItems."totalCakes" as totalCakes`).
+		Where("\"createdAt\" BETWEEN ? AND ?", form.FromDate, form.ToDate).
 		Joins(fmt.Sprintf(`
 			INNER JOIN (
-				SELECT "transactionId", SUM("subTotal") AS "totalAmount", COUNT("id") AS "totalCakes"
+				SELECT "transactionId", SUM("subTotal") AS "totalAmount", COUNT(id) AS "totalCakes"
 				FROM %s
 				GROUP BY "transactionId"
-			) AS "cakeItems" ON %s."id" = "cakeItems"."transactionId"
+			) AS cakeItems ON %s.id = cakeItems."transactionId"
 		`,
 			model.TransactionCake{}.TableName(),
 			model.Transaction{}.TableName(),
 		)).Preload("Cakes.Cake")
+
+	if form.MinAmount != nil {
+		query = query.Where("\"totalAmount\" >= ?", *form.MinAmount)
+	}
+	if form.MaxAmount != nil {
+		query = query.Where("\"totalAmount\" <= ?", *form.MaxAmount)
+	}
 
 	var transactions []excel.TransactionReport
 	err := query.Order("id DESC").Find(&transactions).Error
@@ -173,28 +178,28 @@ func (repo *transactionRepository) Delete(transaction model.Transaction) {
 	}
 }
 
-func (repo *transactionRepository) SaveCakes(transaction model.Transaction, requests []form.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake {
+func (repo *transactionRepository) SaveCakes(transaction model.Transaction, form []form.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake {
 	var transactionCakes []model.TransactionCake
 
-	for _, request := range requests {
+	for _, f := range form {
 		var transactionCake model.TransactionCake
-		if request.ID > 0 {
-			if request.Deleted {
-				err := repo.transaction.Where("\"id\" = ?", request.ID).Delete(&model.TransactionCake{}).Error
+		if f.ID > 0 {
+			if f.Deleted {
+				err := repo.transaction.Where("\"id\" = ?", f.ID).Delete(&model.TransactionCake{}).Error
 				if err != nil {
 					errorpkg.ErrXtremeTransactionCakeDelete(err.Error())
 				}
 			} else {
-				repo.transaction.Preload("Cake").First(&transactionCake, "id = ?", request.ID)
+				repo.transaction.Preload("Cake").First(&transactionCake, "id = ?", f.ID)
 				if transactionCake.ID == 0 {
 					errorpkg.ErrXtremeTransactionCakeGet("ID not found")
 				}
 
-				cake := cakes[request.CakeId]
-				subTotal := float64(request.Quantity) * cake.Price
+				cake := cakes[f.CakeId]
+				subTotal := float64(f.Quantity) * cake.Price
 
-				transactionCake.CakeId = request.CakeId
-				transactionCake.Quantity = request.Quantity
+				transactionCake.CakeId = f.CakeId
+				transactionCake.Quantity = f.Quantity
 				transactionCake.Price = cake.Price
 				transactionCake.SubTotal = subTotal
 				err := repo.transaction.Save(&transactionCake).Error
@@ -203,13 +208,13 @@ func (repo *transactionRepository) SaveCakes(transaction model.Transaction, requ
 				}
 			}
 		} else {
-			cake := cakes[request.CakeId]
-			subTotal := float64(request.Quantity) * cake.Price
+			cake := cakes[f.CakeId]
+			subTotal := float64(f.Quantity) * cake.Price
 
 			transactionCake = model.TransactionCake{
 				TransactionId: transaction.ID,
-				CakeId:        request.CakeId,
-				Quantity:      request.Quantity,
+				CakeId:        f.CakeId,
+				Quantity:      f.Quantity,
 				Price:         cake.Price,
 				SubTotal:      subTotal,
 			}

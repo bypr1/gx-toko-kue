@@ -1206,6 +1206,40 @@
 					"response": []
 				},
 				{
+					"name": "Download Excel",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"fromDate\": \"02/02/2002\",\n    \"toDate\": \"10/10/2030\",\n    \"minAmount\": \"\",\n    \"maxAmount\": \"\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/transactions/download/excel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions",
+								"download",
+								"excel"
+							]
+						},
+						"description": "Download transactions data as Excel file with date range and optional filters"
+					},
+					"response": []
+				},
+				{
 					"name": "Create",
 					"request": {
 						"method": "POST",
