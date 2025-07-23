@@ -85,35 +85,108 @@ Follow this pattern when creating new features:
 - Use meaningful package names that reflect their purpose
 
 ### Database Models
-- Extend `xtrememodel.BaseModel` for all entities
+- Extend one of these models for all entities
+	- `xtrememodel.BaseModel` for common use case
+	- `xtrememodel.BaseModelUUID` for UUID primary keys
+	- `xtrememodel.BaseModelWithoutID` for model that don't use default ID (like composite keys, or else)
 - Use GORM tags for database mapping
+- Filename should be in PascalCase and match the model struct name, e.g., `User.go`
 - Implement `TableName()` method for custom table names
-- Implement `SetReference()` method for reference handling
+- Implement `SetReference()` method for reference handling (used in activity logging)
+- Struct attributes should use GORM tags for column definitions
+- Struct attributes that define foreign Id should be named as `<ModelName>Id`, e.g., `UserId` for `User` model
+- Order of the attributes in the struct should be as follows:
+  - Between `xtrememodel.BaseModel`, `xtrememodel.BaseModelUUID`, or `xtrememodel.BaseModelWithoutID`
+  - Foreign Ids
+  - Required attributes
+  - Optional attributes
+  - Relationships (e.g., `Posts []UserPosts`)
+- If there is custom data type for a field, it should be implemented with following:
+	- For `[]map[string]interface{}}` use `xtrememodel.ArrayMapInterfaceColumn`
+	- For `map[string]interface{}` use `xtrememodel.MapInterfaceColumn`
+- Table columns should be named in camelCase, e.g., `userId`, `otherAttributes`, `createdAt`
+- Table names should be pluralized and use snake_case, e.g., `users`, `posts`, `comments`
 
-Example model structure:
+Example model files:
 ```go
+package model
+
 import (
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"
 )
 
-type YourModel struct {
-    xtrememodel.BaseModel
-    Name string `gorm:"column:name;type:varchar(250);default:null"`
+type User struct {
+	xtrememodel.BaseModel
+	Name       string  `gorm:"column:name;not null"`
+	Avatar     *string  `gorm:"column:avatar;"`
+	Age       int     `gorm:"column:age;type:int;default:0"`
+	OtherAttributes xtrememodel.MapInterfaceColumn `gorm:"column:otherAttributes;type:json"`
+
+	Posts    []Post    `gorm:"foreignKey:UserId"`
+	Comments []Comment  `gorm:"foreignKey:UserId"`
 }
 
-func (YourModel) TableName() string {
-    return "your_table"
+func (User) TableName() string {
+	return "users"
 }
 
-func (model YourModel) SetReference() uint {
-    return model.BaseModel.ID
+func (md User) SetReference() uint {
+	return md.BaseModel.ID
+}
+
+```
+```go
+package model
+
+import (
+	xtrememodel "github.com/globalxtreme/go-core/v2/model"
+)
+
+type Post struct {
+	xtrememodel.BaseModel
+	UserId   uint    `gorm:"column:userId;not null"`
+	Title     string  `gorm:"column:title;not null"`
+	Content   string  `gorm:"column:content;not null"`
+	Properties xtrememodel.ArrayMapInterfaceColumn `gorm:"column:properties;type:json"`
+
+	Comments []Comment `gorm:"foreignKey:PostId"`
+}
+
+func (Post) TableName() string {
+	return "posts"
+}
+
+func (md Post) SetReference() uint {
+	return md.BaseModel.ID
+}
+```
+```go
+package model
+
+import (
+	xtrememodel "github.com/globalxtreme/go-core/v2/model"
+)
+
+type Comment struct {
+	xtrememodel.BaseModel
+	UserId  uint    `gorm:"column:userId;not null"`
+	PostId  uint    `gorm:"column:postId;not null"`
+	Content string  `gorm:"column:content;not null"`
+}
+
+func (Comment) TableName() string {
+	return "comments"
+}
+
+func (md Comment) SetReference() uint {
+	return md.BaseModel.ID
 }
 ```
 
 ### Database Migrations
 - When creating new migrations, *YOU MUST ALWAYS* use cli command: `go run ./cmd/main.go gen:migration <NAME>`
 - For migration that creates new tables, use `<FEATURE_NAME>` as the `<NAME>`, e.g., `Product`
-- For migration that modifies existing tables, use `<FEATURE_NAME>Batch<NumberOfTimesTheFeatureWasModified>` format. Batch number for migration that modifies existing tables should start from 2, make sure to look for the last batch number used in the file in `internal/app/database/migration/`
+- For migration that modifies existing tables, follow pattern of files inside `internal/app/database/migration/`, if none just use what you use for creating new tables
 - Then register migrations in `internal/app/database/migrate.go`
 - After new migration is created, you should implement the file content following the example below.
 
@@ -129,23 +202,23 @@ import (
 	xtremedb "github.com/globalxtreme/go-core/v2/database"
 )
 
-type Product_1726651240922259 struct{}
+type User_1726651240922259 struct{}
 
-func (Product_1726651240922259) Reference() string {
-	return "Product_1726651240922259"
+func (User_1726651240922259) Reference() string {
+	return "User_1726651240922259"
 }
 
-func (Product_1726651240922259) Tables() []xtremedb.Table {
+func (User_1726651240922259) Tables() []xtremedb.Table {
 	owner := os.Getenv("DB_OWNER")
 
 	return []xtremedb.Table{
-		{Connection: config.PgSQL, CreateTable: model.Product{}, Owner: owner},
-		{Connection: config.PgSQL, CreateTable: model.ProductComponentCategory{}, Owner: owner},
-		{Connection: config.PgSQL, CreateTable: model.ProductVariantInformation{}, Owner: owner},
+		{Connection: config.PgSQL, CreateTable: model.User{}, Owner: owner},
+		{Connection: config.PgSQL, CreateTable: model.UserProfile{}, Owner: owner},
+		{Connection: config.PgSQL, CreateTable: model.UserSettings{}, Owner: owner},
 	}
 }
 
-func (Product_1726651240922259) Columns() []xtremedb.Column {
+func (User_1726651240922259) Columns() []xtremedb.Column {
 	return []xtremedb.Column{}
 }
 
@@ -163,27 +236,25 @@ import (
 	xtremedb "github.com/globalxtreme/go-core/v2/database"
 )
 
-type ProductBatch2_1738380774908382 struct{}
+type Post_1738380774908382 struct{}
 
-func (ProductBatch2_1738380774908382) Reference() string {
-	return "ProductBatch2_1738380774908382"
+func (Post_1738380774908382) Reference() string {
+	return "Post_1738380774908382"
 }
 
-func (ProductBatch2_1738380774908382) Tables() []xtremedb.Table {
+func (Post_1738380774908382) Tables() []xtremedb.Table {
 	owner := os.Getenv("DB_OWNER")
-
+	
 	return []xtremedb.Table{
-		{Connection: config.PgSQL, RenameTable: xtremedb.Rename{Old: "setting_add_ons", New: "product_component_add_ons"}, Owner: owner},
-		{Connection: config.PgSQL, RenameTable: xtremedb.Rename{Old: "setting_informations", New: "product_component_informations"}, Owner: owner},
-    {Connection: config.PgSQL, DropTable: model.ProductVariant{}, Owner: owner},
+		{Connection: config.PgSQL, RenameTable: xtremedb.Rename{Old: "posts", New: "threads"}, Owner: owner},
 	}
 }
 
-func (ProductBatch2_1738380774908382) Columns() []xtremedb.Column {
+func (Post_1738380774908382) Columns() []xtremedb.Column {
 	return []xtremedb.Column{
 		{
 			Connection:  config.PgSQL,
-			Model:       model.ProductVariant{},
+			Model:       model.Comment{},
 			DropColumns: []string{"column1", "column2"},
 			RenameColumns: []xtremedb.Rename{
 				{
@@ -196,7 +267,6 @@ func (ProductBatch2_1738380774908382) Columns() []xtremedb.Column {
 		},
 	}
 }
-
 ```
 
 ### Database Seeder
@@ -214,57 +284,44 @@ import (
 	"gorm.io/gorm"
 )
 
-type CakeIngredientSeeder struct {}
+type UserSeeder struct {}
 
-func (seed *CakeIngredientSeeder) Seed() {
-	ingredients := seed.setIngredientsData()
-	for _, ingredient := range ingredients {
+func (seed *UserSeeder) Seed() {
+	users := seed.setUsersData()
+	for _, user := range users {
 		var count int64
-		config.PgSQL.Model(&model.CakeComponentIngredient{}).Where("name = ?", ingredient["name"]).Count(&count)
+		config.PgSQL.Model(&model.User{}).Where("email = ?", user["email"]).Count(&count)
 		if count > 0 {
 			continue
 		}
 
-		config.PgSQL.Model(&model.CakeComponentIngredient{}).Where("name = ?", ingredient["name"]).Count(&count)Create(&model.CakeComponentIngredient{
-			Name:        ingredient["name"].(string),
-			Description: ingredient["description"].(string),
-			UnitPrice:   ingredient["unit_price"].(float64),
-			Unit:        ingredient["unit"].(string),
+		config.PgSQL.Model(&model.User{}).Create(&model.User{
+			Email:    user["email"].(string),
+			Password: user["password"].(string),
+			FullName: user["full_name"].(string),
+			Age:     user["age"].(int),
 		})
 	}
 }
 
 // --- UNEXPORTED FUNCTIONS ---
 
-func (seed *CakeIngredientSeeder) setIngredientsData() []map[string]interface{} {
+func (seed *UserSeeder) setUsersData() []map[string]interface{} {
 	return []map[string]interface{}{
 		{
-			"name":        "Eggs",
-			"description": "Fresh chicken eggs",
-			"unit_price":  2000.0,
-			"unit":        "pcs",
+			"email":    "john.doe@example.com",
+			"password": "password123",
+			"full_name": "John Doe",
+			"age":     30,
 		},
 		{
-			"name":        "Flour",
-			"description": "All-purpose wheat flour",
-			"unit_price":  10000.0,
-			"unit":        "kg",
-		},
-		{
-			"name":        "Sugar",
-			"description": "Granulated white sugar",
-			"unit_price":  12000.0,
-			"unit":        "kg",
-		},
-		{
-			"name":        "Chocolate",
-			"description": "Chocolate compound for baking",
-			"unit_price":  25000.0,
-			"unit":        "kg",
+			"email":    "jane.smith@example.com",
+			"password": "password456",
+			"full_name": "Jane Smith",
+			"age":     25,
 		},
 	}
 }
-
 ```
 
 ### Form Request
@@ -272,7 +329,7 @@ func (seed *CakeIngredientSeeder) setIngredientsData() []map[string]interface{} 
 - Implement form validation using `github.com/go-playground/validator/v10`
 - Json attributes should be in camelCase, e.g., `name` instead of `Name`, `sellPrice` instead of `sell_price`
 
-Example form structure:
+Example form structure (for json request):
 ```go
 package form
 
@@ -283,35 +340,71 @@ import (
 	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
 )
 
-type CakeForm struct {
-	Name        string                   `json:"name" validate:"required,max=250"`
-	Description string                   `json:"description"`
-	Margin      float64                  `json:"margin" validate:"required,gte=0"`
-	Unit        string                   `json:"unit" validate:"max=50"`
-	Stock       int                      `json:"stock" validate:"gte=0"`
-	Ingredients []CakeCompIngredientForm `json:"ingredients" validate:"required,dive"`
-	Costs       []CakeCompCostForm       `json:"costs" validate:"required,dive"`
+type UserForm struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+	FullName string `json:"fullName" validate:"required,max=100"`
+	Age     int    `json:"age" validate:"required,gte=0"`
+	Contacts []UserContactForm `json:"contacts" validate:"required,dive"`
 }
 
-type CakeCompIngredientForm struct {
-	IngredientID uint    `json:"ingredientId" validate:"required,gt=0"`
-	Amount       float64 `json:"amount" validate:"required,gte=0"`
-	Unit         string  `json:"unit" validate:"required,max=50"`
+type UserContactForm struct {
+	ID *uint   `json:"id"`
+	Type string `json:"type" validate:"required"`
+	Value string `json:"value" validate:"required"`
+	Primary bool   `json:"primary" validate:"required"`
+	Deleted bool   `json:"deleted"`
 }
 
-type CakeCompCostForm struct {
-	CostType string  `json:"type" validate:"required,max=100"`
-	Cost     float64 `json:"cost" validate:"required,gte=0"`
-}
-
-func (f *CakeForm) Validate() {
+func (f *UserForm) Validate() {
 	va := xtrememdw.Validator{}
 	va.Make(f)
 }
 
-func (f *CakeForm) APIParse(r *http.Request) {
+func (f *UserForm) APIParse(r *http.Request) {
 	form := core.BaseForm{}
 	form.APIParse(r, &f)
+}
+
+```
+
+Example form structure (for form request):
+```go
+package form
+
+import (
+	"net/http"
+	"service/internal/pkg/core"
+
+	xtrememdw "github.com/globalxtreme/go-core/v2/middleware"
+)
+
+type UserForm struct {
+	Request *http.Request `form:"-"`
+	Email    string `form:"email" validate:"required,email"`
+	Password string `form:"password" validate:"required,min=8"`
+	FullName string `form:"fullName" validate:"required,max=100"`
+	Age     int    `form:"age" validate:"required,gte=0"`
+	Contacts []UserContactForm `form:"contacts" validate:"required,dive"`
+}
+
+type UserContactForm struct {
+	ID *uint   `form:"id"`
+	Type string `form:"type" validate:"required"`
+	Value string `form:"value" validate:"required"`
+	Primary bool   `form:"primary" validate:"required"`
+	Deleted bool   `form:"deleted"`
+}
+
+func (f *UserForm) Validate() {
+	va := xtrememdw.Validator{}
+	va.Make(f)
+}
+
+func (f *UserForm) APIParse(r *http.Request) {
+	f.Request = r
+	form := core.BaseForm{}
+	form.APIMultipartFormParse(r, &f)
 }
 
 ```
@@ -320,6 +413,15 @@ func (f *CakeForm) APIParse(r *http.Request) {
 - Use `internal/pkg/parser/` for data transformation
 - Implement parsers for API responses
 - Returned attributes should be in camelCase `sellPrice` instead of `sell_price`
+- Functions that should be implemented in order:
+  - `Briefs()`: Returns a brief list of objects
+  - `Brief()`: Returns a brief object
+  - `Get()`: Returns a detailed list of objects
+  - `First()`: Returns a detailed object
+  - `CreateActivity(action string)`: Returns the object for create activity
+  - `DeleteActivity(action string)`: Returns the object for delete activity
+  - `GeneralActivity(action string)`: Returns the object for general activity
+  - `UpdateActivity(action string)`: Returns the object for update activity
 
 Example parser structure:
 ```go
@@ -329,83 +431,71 @@ import (
 	"service/internal/pkg/model"
 )
 
-type CakeParser struct {
-	Array  []model.Cake
-	Object model.Cake
+type UserParser struct {
+	Array  []model.User
+	Object model.User
 }
 
-func (parser CakeParser) CreateActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) DeleteActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) GeneralActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) UpdateActivity(action string) interface{} {
-	return parser.Brief()
-}
-
-func (parser CakeParser) Briefs() []interface{} {
+func (parser UserParser) Briefs() []interface{} {
 	var result []interface{}
 	for _, obj := range parser.Array {
-		result = append(result, CakeParser{Object: obj}.Brief())
+		result = append(result, UserParser{Object: obj}.Brief())
 	}
 	return result
 }
 
-func (parser CakeParser) Brief() interface{} {
-	cakeObj := parser.Object
-	var recipes []interface{}
-	for _, recipe := range cakeObj.Recipes {
-		recipes = append(recipes, CakeRecipeParser{Object: recipe}.First())
-	}
-	var costs []interface{}
-	for _, cost := range cakeObj.Costs {
-		costs = append(costs, CakeCostParser{Object: cost}.First())
-	}
+func (parser UserParser) Brief() interface{} {
+	user := parser.Object
 	return map[string]interface{}{
-		"id":          cakeObj.ID,
-		"name":        cakeObj.Name,
-		"description": cakeObj.Description,
-		"margin":      cakeObj.Margin,
-		"sellPrice":   cakeObj.SellPrice,
-		"unit":        cakeObj.Unit,
-		"stock":       cakeObj.Stock,
-		"createdAt":   cakeObj.CreatedAt.Format("02/01/2006 15:04"),
-		"updatedAt":   cakeObj.UpdatedAt.Format("02/01/2006 15:04"),
-		"recipes":     recipes,
-		"costs":       costs,
+		"id":       user.ID,
+		"email":    user.Email,
+		"fullName": user.FullName,
+		"age":      user.Age,
 	}
 }
 
-func (parser CakeParser) Get() []interface{} {
+func (parser UserParser) Get() []interface{} {
 	var result []interface{}
 	for _, obj := range parser.Array {
-		result = append(result, CakeParser{Object: obj}.First())
+		result = append(result, UserParser{Object: obj}.First())
 	}
 	return result
 }
 
-func (parser CakeParser) First() interface{} {
-	cakeObj := parser.Object
+func (parser UserParser) First() interface{} {
+	user := parser.Object
+	var contacts []map[string]interface{}
+	for _, contact := range user.Contacts {
+		contacts = append(contacts, map[string]interface{}{
+			"type":    contact.Type,
+			"value":   contact.Value,
+			"primary": contact.Primary,
+		})
+	}
 	return map[string]interface{}{
-		"id":          cakeObj.ID,
-		"name":        cakeObj.Name,
-		"description": cakeObj.Description,
-		"margin":      cakeObj.Margin,
-		"sellPrice":   cakeObj.SellPrice,
-		"unit":        cakeObj.Unit,
-		"stock":       cakeObj.Stock,
-		"createdAt":   cakeObj.CreatedAt.Format("02/01/2006 15:04"),
-		"updatedAt":   cakeObj.UpdatedAt.Format("02/01/2006 15:04"),
+		"id":       user.ID,
+		"email":    user.Email,
+		"fullName": user.FullName,
+		"age":      user.Age,
+		"contacts": contacts,
 	}
 }
 
+func (parser UserParser) CreateActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser UserParser) DeleteActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser UserParser) GeneralActivity(action string) interface{} {
+	return parser.First()
+}
+
+func (parser UserParser) UpdateActivity(action string) interface{} {
+	return parser.First()
+}
 ```
 
 ### Domain Specific Codes
@@ -422,337 +512,341 @@ import (
 	"net/url"
 	"service/internal/pkg/config"
 	"service/internal/pkg/core"
-	errorpkg "service/internal/pkg/error"
-	formpkg "service/internal/pkg/form"
+	erro "service/internal/pkg/error"
+	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 
 	xtrememodel "github.com/globalxtreme/go-core/v2/model"
 	"gorm.io/gorm"
 )
 
-type CakeRepository interface {
-	core.TransactionRepository
+type UserRepository interface {
+	core.UserRepository
+	core.PaginateRepository[model.User]
+	core.FirstIdRepository[model.User]
 
-	core.PaginateRepository[model.Cake]
-	core.FirstIdRepository[model.Cake]
+	APIPreload(query *gorm.DB) *gorm.DB
 
-	Store(form formpkg.CakeForm, sellPrice float64) model.Cake
-	Delete(cake model.Cake)
-	Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake
-
-	AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
-	UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient
-	DeleteRecipes(cake model.Cake)
-
-	AddCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
-	UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost
-	DeleteCosts(cake model.Cake)
-
-	PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB
+	Store(form form.UserForm) model.User
+	Delete(user model.User)
+	Update(user model.User, form form.UserForm) model.User
+	UpdateAvatar(user model.User, avatar string) model.User
+	SaveContacts(user model.User, contacts []form.UserContactForm) []model.UserContact
+	DeleteContacts(user model.User)
 }
 
-func NewCakeRepository(args ...*gorm.DB) CakeRepository {
-	repository := cakeRepository{}
+func NewUserRepository(args ...*gorm.DB) UserRepository {
+	repository := userRepository{}
 	if len(args) > 0 {
 		repository.transaction = args[0]
-	} else {
-		repository.transaction = config.PgSQL // Default to global config
 	}
 
 	return &repository
 }
 
-type cakeRepository struct {
+type userRepository struct {
 	transaction *gorm.DB
 }
 
-func (repo *cakeRepository) SetTransaction(tx *gorm.DB) {
+func (repo *userRepository) SetTransaction(tx *gorm.DB) {
 	repo.transaction = tx
 }
 
-func (repo *cakeRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.Cake {
-	var cake model.Cake
-	query := repo.transaction
+func (repo *userRepository) APIPreload(query *gorm.DB) *gorm.DB {
+	return query.Preload("Contacts")
+}
+
+func (repo *userRepository) FirstById(id any, args ...func(query *gorm.DB) *gorm.DB) model.User {
+	var user model.User
+	query := config.PgSQL
 
 	if len(args) > 0 {
 		query = args[0](query)
 	}
 
-	err := query.First(&cake, "id = ?", id).Error
+	err := query.First(&user, "id = ?", id).Error
 	if err != nil {
-		errorpkg.ErrXtremeCakeGet(err.Error())
+		erro.ErrXtremeUserGet(err.Error())
 	}
 
-	return cake
+	return user
 }
 
-func (repo *cakeRepository) Paginate(parameter url.Values) ([]model.Cake, interface{}, error) {
+func (repo *userRepository) Paginate(parameter url.Values) ([]model.User, interface{}, error) {
 	fromDate, toDate := core.SetDateRange(parameter)
 
-	query := repo.transaction.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
+	query := config.PgSQL.Where("\"createdAt\" BETWEEN ? AND ?", fromDate, toDate)
 
 	if search := parameter.Get("search"); len(search) > 3 {
-		query = query.Where("name ILIKE ?", "%"+search+"%")
+		query = query.Where("email ILIKE ? OR \"fullName\" ILIKE ?", "%"+search+"%", "%"+search+"%")
 	}
 
-	cakes, pagination, err := xtrememodel.Paginate(query.Order("id DESC"), parameter, model.Cake{})
+	users, pagination, err := xtrememodel.Paginate(query.Order("id DESC"), parameter, model.User{})
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return cakes, pagination, nil
+	return users, pagination, nil
 }
 
-func (repo *cakeRepository) Store(form formpkg.CakeForm, sellPrice float64) model.Cake {
-	cake := model.Cake{
-		Name:        form.Name,
-		Description: form.Description,
-		Margin:      form.Margin,
-		SellPrice:   sellPrice,
-		Unit:        form.Unit,
-		Stock:       form.Stock,
+func (repo *userRepository) Store(form form.UserForm) model.User {
+	user := model.User{
+		Email:    form.Email,
+		Password: form.Password,
+		FullName: form.FullName,
+		Age:      form.Age,
 	}
 
-	err := repo.transaction.Create(&cake).Error
+	err := repo.transaction.Create(&user).Error
 	if err != nil {
-		errorpkg.ErrXtremeCakeSave(err.Error())
+		erro.ErrXtremeUserSave(err.Error())
 	}
 
-	return cake
+	return user
 }
 
-func (repo *cakeRepository) Update(cake model.Cake, form formpkg.CakeForm, sellPrice float64) model.Cake {
-	cake.Name = form.Name
-	cake.Description = form.Description
-	cake.Margin = form.Margin
-	cake.SellPrice = sellPrice
-	cake.Unit = form.Unit
-	cake.Stock = form.Stock
+func (repo *userRepository) Update(user model.User, form form.UserForm) model.User {
+	user.Email = form.Email
+	user.FullName = form.FullName
+	user.Age = form.Age
 
-	err := repo.transaction.Save(&cake).Error
+	err := repo.transaction.Save(&user).Error
 	if err != nil {
-		errorpkg.ErrXtremeCakeSave(err.Error())
+		erro.ErrXtremeUserSave(err.Error())
 	}
 
-	return cake
+	return user
 }
 
-func (repo *cakeRepository) Delete(cake model.Cake) {
-	err := repo.transaction.Delete(&cake).Error
+func (repo *userRepository) UpdateAvatar(user model.User, avatar string) model.User {
+	user.Avatar = &avatar
+	err := repo.transaction.Save(&user).Error
 	if err != nil {
-		errorpkg.ErrXtremeCakeDelete(err.Error())
+		erro.ErrXtremeUserSave(err.Error())
 	}
+	return user
 }
 
-func (repo *cakeRepository) addRecipe(cake model.Cake, recipe formpkg.CakeCompIngredientForm) model.CakeRecipeIngredient {
-	cakeRecipe := model.CakeRecipeIngredient{
-		CakeID:       cake.ID,
-		IngredientID: recipe.IngredientID,
-		Amount:       recipe.Amount,
-		Unit:         recipe.Unit,
-	}
-
-	err := repo.transaction.Create(&cakeRecipe).Error
+func (repo *userRepository) Delete(user model.User) {
+	err := repo.transaction.Delete(&user).Error
 	if err != nil {
-		errorpkg.ErrXtremeCakeRecipeSave(err.Error())
+		erro.ErrXtremeUserDelete(err.Error())
+	}
+}
+
+func (repo *userRepository) SaveContacts(user model.User, contacts []form.UserContactForm) []model.UserContact {
+	var userContacts []model.UserContact
+
+	for _, request := range contacts {
+		var contact model.UserContact
+		if request.ID != nil && *request.ID > 0 {
+			if request.Deleted {
+				err := repo.transaction.Where("id = ?", *request.ID).Delete(&model.UserContact{}).Error
+				if err != nil {
+					erro.ErrXtremeUserContactDelete(err.Error())
+				}
+			} else {
+				repo.transaction.First(&contact, "id = ?", *request.ID)
+				if contact.ID == 0 {
+					erro.ErrXtremeUserContactGet("ID not found")
+				}
+
+				contact.Type = request.Type
+				contact.Value = request.Value
+				contact.Primary = request.Primary
+				err := repo.transaction.Save(&contact).Error
+				if err != nil {
+					erro.ErrXtremeUserContactSave(err.Error())
+				}
+			}
+		} else {
+			contact = model.UserContact{
+				UserId:  user.ID,
+				Type:    request.Type,
+				Value:   request.Value,
+				Primary: request.Primary,
+			}
+			err := repo.transaction.Save(&contact).Error
+			if err != nil {
+				erro.ErrXtremeUserContactSave(err.Error())
+			}
+		}
+
+		if contact.ID > 0 {
+			userContacts = append(userContacts, contact)
+		}
 	}
 
-	return cakeRecipe
+	return userContacts
 }
 
-func (repo *cakeRepository) AddRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
-	var cakeRecipes []model.CakeRecipeIngredient
-	for _, recipe := range recipes {
-		cakeRecipe := repo.addRecipe(cake, recipe)
-		cakeRecipes = append(cakeRecipes, cakeRecipe)
-	}
-	return cakeRecipes
-}
-
-func (repo *cakeRepository) UpdateRecipes(cake model.Cake, recipes []formpkg.CakeCompIngredientForm) []model.CakeRecipeIngredient {
-	repo.DeleteRecipes(cake)
-	return repo.AddRecipes(cake, recipes)
-}
-
-func (repo *cakeRepository) DeleteRecipes(cake model.Cake) {
-	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeRecipeIngredient{}).Error
+func (repo *userRepository) DeleteContacts(user model.User) {
+	err := repo.transaction.Where("\"userId\" = ?", user.ID).Delete(&model.UserContact{}).Error
 	if err != nil {
-		errorpkg.ErrXtremeCakeRecipeDelete(err.Error())
+		erro.ErrXtremeUserContactDelete(err.Error())
 	}
-}
-
-func (repo *cakeRepository) addCost(cake model.Cake, cost formpkg.CakeCompCostForm) model.CakeCost {
-	cakeCost := model.CakeCost{
-		CakeID: cake.ID,
-		Type:   cost.CostType,
-		Cost:   cost.Cost,
-	}
-
-	err := repo.transaction.Create(&cakeCost).Error
-	if err != nil {
-		errorpkg.ErrXtremeCakeCostSave(err.Error())
-	}
-
-	return cakeCost
-}
-
-func (repo *cakeRepository) AddCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
-	var cakeCosts []model.CakeCost
-	for _, cost := range costs {
-		cakeCost := repo.addCost(cake, cost)
-		cakeCosts = append(cakeCosts, cakeCost)
-	}
-	return cakeCosts
-}
-
-func (repo *cakeRepository) UpdateCosts(cake model.Cake, costs []formpkg.CakeCompCostForm) []model.CakeCost {
-	// Delete existing and replace with new costs
-	repo.DeleteCosts(cake)
-	return repo.AddCosts(cake, costs)
-}
-
-func (repo *cakeRepository) DeleteCosts(cake model.Cake) {
-	err := repo.transaction.Where("\"cakeId\" = ?", cake.ID).Delete(&model.CakeCost{}).Error
-	if err != nil {
-		errorpkg.ErrXtremeCakeCostDelete(err.Error())
-	}
-}
-
-func (repo *cakeRepository) PreloadRecipesAndCosts(query *gorm.DB) *gorm.DB {
-	return query.Preload("Recipes.Ingredient").Preload("Costs")
 }
 ```
 
 - Use `service/` for business logic
   - Every service that would modify the data (Create/Update/Delete) should use a transaction and save their action as `Activity`
+
+
 Example service structure for CRUD:
 ```go
 package service
 
 import (
 	"fmt"
-	"service/internal/cake/repository"
 	"service/internal/pkg/activity"
 	"service/internal/pkg/config"
 	"service/internal/pkg/constant"
 	"service/internal/pkg/form"
 	"service/internal/pkg/model"
 	"service/internal/pkg/parser"
+	"service/internal/pkg/port"
+	"service/internal/user/excel"
+	"service/internal/user/repository"
 
 	"gorm.io/gorm"
 )
 
-type CakeService interface {
-	Create(form form.CakeForm) model.Cake
-	Update(form form.CakeForm, id string) model.Cake
+type UserService interface {
+	SetMembershipRepository(repo port.MembershipRepository)
+
+	Create(form form.UserForm) model.User
+	Update(form form.UserForm, id string) model.User
 	Delete(id string) bool
+	ReportExcel(form form.UserReportForm) string
 }
 
-func NewCakeService() CakeService {
-	return &cakeService{}
+func NewUserService() UserService {
+	return &userService{}
 }
 
-type cakeService struct {
-	repository repository.CakeRepository
+type userService struct {
+	repository           repository.UserRepository
+	membershipRepository port.MembershipRepository
 }
 
-func (srv *cakeService) Create(form form.CakeForm) model.Cake {
-	var cake model.Cake
+func (srv *userService) SetMembershipRepository(repo port.MembershipRepository) {
+	srv.membershipRepository = repo
+}
+
+func (srv *userService) Create(form form.UserForm) model.User {
+	var user model.User
+	srv.prepare()
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeRepository(tx)
+		srv.setRepositoriesWithTransaction(tx)
 
-		cake = srv.repository.Store(form, srv.calculateSellPrice(form))
-		recipes := srv.repository.AddRecipes(cake, form.Ingredients)
-		costs := srv.repository.AddCosts(cake, form.Costs)
+		memberships := srv.getMemberships(form.Memberships)
+		totalAmount := srv.calculateTotalPrice(form.Memberships, memberships)
 
-		cake.Recipes = append(cake.Recipes, recipes...)
-		cake.Costs = append(cake.Costs, costs...)
+		user = srv.repository.Store(form, totalAmount)
+		user.Memberships = srv.repository.SaveMemberships(user, form.Memberships, memberships)
 
-		activity.UseActivity{}.SetReference(cake).SetParser(&parser.CakeParser{Object: cake}).SetNewProperty(constant.ACTION_CREATE).
-			Save(fmt.Sprintf("Created new cake: %s [%d]", cake.Name, cake.ID))
+		activity.UseActivity{}.SetReference(user).SetParser(&parser.UserParser{Object: user}).SetNewProperty(constant.ACTION_CREATE).
+			Save(fmt.Sprintf("Created new user [%d] with total amount %.2f", user.ID, user.TotalPrice))
 
 		return nil
 	})
 
-	return cake
+	return user
 }
 
-func (srv *cakeService) Update(form form.CakeForm, id string) model.Cake {
-	var cake model.Cake
+func (srv *userService) Update(form form.UserForm, id string) model.User {
+	user := srv.prepareWithData(id)
 
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeRepository(tx)
-		cake = srv.repository.FirstById(id)
+		srv.setRepositoriesWithTransaction(tx)
 
 		act := activity.UseActivity{}.
-			SetReference(cake).
-			SetParser(&parser.CakeParser{Object: cake}).
+			SetReference(user).
+			SetParser(&parser.UserParser{Object: user}).
 			SetOldProperty(constant.ACTION_UPDATE)
 
-		cake = srv.repository.Update(cake, form, srv.calculateSellPrice(form))
-		recipes := srv.repository.UpdateRecipes(cake, form.Ingredients)
-		costs := srv.repository.UpdateCosts(cake, form.Costs)
+		memberships := srv.getMemberships(form.Memberships)
+		totalAmount := srv.calculateTotalPrice(form.Memberships, memberships)
 
-		cake.Recipes = append(cake.Recipes, recipes...)
-		cake.Costs = append(cake.Costs, costs...)
+		user = srv.repository.Update(user, form, totalAmount)
+		user.Memberships = srv.repository.SaveMemberships(user, form.Memberships, memberships)
 
-		act.SetParser(&parser.CakeParser{Object: cake}).
+		act.SetParser(&parser.UserParser{Object: user}).
 			SetNewProperty(constant.ACTION_UPDATE).
-			Save(fmt.Sprintf("Updated cake: %s [%d]", cake.Name, cake.ID))
+			Save(fmt.Sprintf("Updated user [%d] with total amount %.2f", user.ID, user.TotalPrice))
 
 		return nil
 	})
 
-	return cake
+	return user
 }
 
-func (srv *cakeService) Delete(id string) bool {
+func (srv *userService) Delete(id string) bool {
+	user := srv.prepareWithData(id)
+
 	config.PgSQL.Transaction(func(tx *gorm.DB) error {
-		srv.repository = repository.NewCakeRepository(tx)
-		cake := srv.repository.FirstById(id)
+		srv.setRepositoriesWithTransaction(tx)
 
-		srv.repository.DeleteRecipes(cake)
-		srv.repository.DeleteCosts(cake)
-		srv.repository.Delete(cake)
+		srv.repository.DeleteMemberships(user)
+		srv.repository.Delete(user)
 
-		activity.UseActivity{}.SetReference(cake).SetParser(&parser.CakeParser{Object: cake}).SetOldProperty(constant.ACTION_DELETE).
-			Save(fmt.Sprintf("Deleted cake: %s [%d]", cake.Name, cake.ID))
+		activity.UseActivity{}.SetReference(user).SetParser(&parser.UserParser{Object: user}).SetOldProperty(constant.ACTION_DELETE).
+			Save(fmt.Sprintf("Deleted user [%d]", user.ID))
 
 		return nil
 	})
 	return true
 }
 
-func (srv *cakeService) calculateSellPrice(form form.CakeForm) float64 {
-	var sellPrice float64
+func (srv *userService) ReportExcel(form form.UserReportForm) string {
+	srv.prepare()
 
-	// Calculate total cost from recipes
-	ingredientRepo := repository.NewCakeComponentIngredientRepository()
-
-	var ingredientIDs []any
-	recipeQtys := make(map[uint]float64)
-	for _, recipe := range form.Ingredients {
-		ingredientIDs = append(ingredientIDs, recipe.IngredientID)
-		recipeQtys[recipe.IngredientID] = recipe.Amount
+	users := srv.repository.FindForReport(form)
+	userExcel := excel.UserExcel{
+		Users: users,
 	}
 
-	ingredients := ingredientRepo.FindByIds(ingredientIDs)
-	for _, ingredient := range ingredients {
-		sellPrice += ingredient.UnitPrice * recipeQtys[ingredient.ID]
+	filename, _ := userExcel.Generate()
+	return filename
+}
+
+func (srv *userService) prepare() {
+	srv.repository = repository.NewUserRepository(nil)
+}
+
+func (srv *userService) prepareWithData(id string) model.User {
+	srv.prepare()
+	return srv.repository.FirstById(id)
+}
+
+func (srv *userService) setRepositoriesWithTransaction(tx *gorm.DB) {
+	srv.repository.SetTransaction(tx)
+	srv.membershipRepository.SetTransaction(tx)
+}
+
+func (srv *userService) getMemberships(items []form.UserMembershipForm) map[uint]model.Membership {
+	var membershipIDs []any
+	for _, it := range items {
+		membershipIDs = append(membershipIDs, it.MembershipId)
 	}
 
-	// Add additional costs
-	for _, cost := range form.Costs {
-		sellPrice += cost.Cost
+	memberships := srv.membershipRepository.FindByIds(membershipIDs)
+	membershipMap := make(map[uint]model.Membership)
+	for _, membership := range memberships {
+		membershipMap[membership.ID] = membership
 	}
+	return membershipMap	
+}
 
-	// Calculate sell price based on margin
-	if form.Margin > 0 {
-		return sellPrice + (sellPrice * form.Margin / 100)
+func (srv *userService) calculateTotalPrice(items []form.UserMembershipForm, membershipMap map[uint]model.Membership) float64 {
+	var totalAmount float64
+	for _, it := range items {
+		if membership, exists := membershipMap[it.MembershipId]; exists {
+			totalAmount += float64(it.Quantity) * membership.Price
+		}
 	}
-
-	return sellPrice
+	return totalAmount
 }
 
 ```
@@ -870,7 +964,118 @@ func (TestingExcel) setSheetsAndProperties() ([]string, [][][]interface{}) {
 
 Example handler structure:
 ```go
+package handler
 
+import (
+	"net/http"
+	membershipRepository "service/internal/membership/repository"
+	"service/internal/pkg/form"
+	"service/internal/pkg/parser"
+	"service/internal/user/repository"
+	"service/internal/user/service"
+
+	xtremeres "github.com/globalxtreme/go-core/v2/response"
+	"github.com/gorilla/mux"
+)
+
+type UserHandler struct{}
+
+func (UserHandler) Get(w http.ResponseWriter, r *http.Request) {
+	repo := repository.NewUserRepository()
+	users, pagination, _ := repo.Paginate(r.URL.Query())
+
+	psr := parser.UserParser{Array: users}
+	res := xtremeres.Response{Array: psr.Briefs(), Pagination: &pagination}
+	res.Success(w)
+}
+
+func (UserHandler) Detail(w http.ResponseWriter, r *http.Request) {
+	repo := repository.NewUserRepository()
+	user := repo.FirstById(mux.Vars(r)["id"], repo.PreloadMemberships)
+
+	psr := parser.UserParser{Object: user}
+	res := xtremeres.Response{Object: psr.First()}
+	res.Success(w)
+}
+
+func (UserHandler) Create(w http.ResponseWriter, r *http.Request) {
+	var form form.UserForm
+	form.APIParse(r)
+	form.Validate()
+
+	srv := service.NewUserService()
+	srv.SetMembershipRepository(membershipRepository.NewMembershipRepository())
+	user := srv.Create(form)
+
+	psr := parser.UserParser{Object: user}
+	res := xtremeres.Response{Object: psr.First()}
+	res.Success(w)
+}
+
+func (UserHandler) Update(w http.ResponseWriter, r *http.Request) {
+	var form form.UserForm
+	form.APIParse(r)
+	form.Validate()
+
+	srv := service.NewUserService()
+	srv.SetMembershipRepository(membershipRepository.NewMembershipRepository())
+	user := srv.Update(form, mux.Vars(r)["id"])
+
+	psr := parser.UserParser{Object: user}
+	res := xtremeres.Response{Object: psr.First()}
+	res.Success(w)
+}
+
+func (UserHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	srv := service.NewUserService()
+	srv.Delete(mux.Vars(r)["id"])
+
+	res := xtremeres.Response{}
+	res.Success(w)
+}
+
+func (UserHandler) ReportExcel(w http.ResponseWriter, r *http.Request) {
+	var form form.UserReportForm
+	form.APIParse(r)
+	form.Validate()
+
+	srv := service.NewUserService()
+	filename := srv.ReportExcel(form)
+
+	res := xtremeres.Response{Object: filename}
+	res.Success(w)
+}
+```
+
+Registered handlers in `internal/app/api/web/router.go` format:
+```go
+package web
+
+import (
+	"service/internal/app/api/web/handler"
+
+	"github.com/gorilla/mux"
+)
+
+func Register(router *mux.Router) {
+	//...other routes
+	userRouter(router)
+}
+
+// ...other routers
+
+func userRouter(router *mux.Router) {
+	router = router.PathPrefix("/users").Subrouter()
+
+	var userHandler handler.UserHandler
+	router.HandleFunc("", userHandler.Get).Methods("GET")
+	router.HandleFunc("", userHandler.Create).Methods("POST")
+	router.HandleFunc("/{id}", userHandler.Detail).Methods("GET")
+	router.HandleFunc("/{id}", userHandler.Update).Methods("PUT")
+	router.HandleFunc("/{id}", userHandler.Delete).Methods("DELETE")
+	router.HandleFunc("/download/excel", userHandler.ReportExcel).Methods("POST")
+}
+```
 
 ## Technology Stack
 
