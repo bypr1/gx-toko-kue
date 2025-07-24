@@ -17,28 +17,22 @@ flowchart TD
     C[Costs] --> |Dibebankan| D
     D -->|On Create/Update| E([Update Sell Price])
     E --> D
+    D -->|Dibuatkan Transaksi| T[Transactions]
 ```
 
 ### Fitur Sistem
-- Input data kue (nama, deskripsi, margin(%)).
 - Input data bahan baku kue. (nama, deskripsi, harga per unit, unit)
-- Input data resep kue.
-- Input data ongkos per kue.
-- Menghitung harga pokok produksi (HPP) berdasarkan bahan baku dan ongkosnya.
-- Produksi kue berdasarkan bahan baku yang tersedia dan ongkos yang telah ditentukan (update stok & harga jualnya juga).
+- Input data kue (nama, deskripsi, margin(%)) beserta resep dan biayanya.
+- Input data penjualan ID Transaksi, jumlah kue, total harga, dan tanggal penjualan.
+
+### Rumus Menghitung Harga Jual
+- **Harga Pokok Produksi (HPP)**: HPP = Total Biaya Bahan Baku + Total Biaya Tenaga Kerja + Biaya Overhead
+- **Harga Jual**: Harga Jual = HPP + (HPP * Margin
 
 ### Struktur Data 
 - `Cake`: Struktur data untuk menyimpan informasi kue, termasuk ID kue, nama, deskripsi, margin(%), dan harga jual.
 - `CakeComponentIngredient`: Struktur data untuk menyimpan informasi bahan baku, termasuk ID bahan, nama, deskripsi, harga per unit, dan unit.
 - `CakeRecipeIngredient`: Struktur data untuk menyimpan informasi resep kue, termasuk ID resep, ID kue, dan daftar bahan baku beserta takarannya.
 - `CakeCost`: Struktur data untuk menyimpan informasi ongkos produksi per kue, termasuk ID kue, jenis ongkos dan ongkos.
-
-#### Pengembangan Berikutnya
-
-Menambahkan fitur transaksi penjualan kue, yang mencakup:
-- Input data penjualan ID Transaksi, jumlah kue, total harga, dan tanggal penjualan.
-- Input detail penjualan, termasuk ID kue, jumlah yang terjual, dan harga jual per unit.
-
-*Struktur data untuk transaksi penjualan:*
 - `Transaction`: Struktur data untuk menyimpan informasi transaksi penjualan, termasuk ID transaksi, tanggal, dan total harga.
 - `TransactionCake`: Struktur data untuk menyimpan detail penjualan, termasuk ID transaksi, ID kue, jumlah yang terjual, dan harga jual per unit.

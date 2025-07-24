@@ -16,20 +16,19 @@ import (
 
 type TransactionRepository interface {
 	core.TransactionRepository
+	APIPreload(query *gorm.DB) *gorm.DB
 
 	core.PaginateRepository[model.Transaction]
 	core.FirstIdRepository[model.Transaction]
 	core.FindRepository[model.Transaction]
-	FindForReport(form form.TransactionReportForm) []excel.TransactionReport
 
+	FindForReport(form form.TransactionReportForm) []excel.TransactionReport
 	Store(form form.TransactionForm, totalAmount float64) model.Transaction
 	Delete(transaction model.Transaction)
 	Update(transaction model.Transaction, form form.TransactionForm, totalAmount float64) model.Transaction
 
 	SaveCakes(transaction model.Transaction, form []form.TransactionCakeForm, cakes map[uint]model.Cake) []model.TransactionCake
 	DeleteCakes(transaction model.Transaction)
-
-	PreloadCakes(query *gorm.DB) *gorm.DB
 }
 
 func NewTransactionRepository(args ...*gorm.DB) TransactionRepository {
@@ -49,7 +48,7 @@ func (repo *transactionRepository) SetTransaction(tx *gorm.DB) {
 	repo.transaction = tx
 }
 
-func (repo *transactionRepository) PreloadCakes(query *gorm.DB) *gorm.DB {
+func (repo *transactionRepository) APIPreload(query *gorm.DB) *gorm.DB {
 	return query.Preload("Cakes.Cake")
 }
 

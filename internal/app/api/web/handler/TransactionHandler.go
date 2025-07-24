@@ -25,7 +25,7 @@ func (TransactionHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (TransactionHandler) Detail(w http.ResponseWriter, r *http.Request) {
 	repo := repository.NewTransactionRepository()
-	transaction := repo.FirstById(mux.Vars(r)["id"], repo.PreloadCakes)
+	transaction := repo.FirstById(mux.Vars(r)["id"], repo.APIPreload)
 
 	psr := parser.TransactionParser{Object: transaction}
 	res := xtremeres.Response{Object: psr.First()}
@@ -62,6 +62,7 @@ func (TransactionHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (TransactionHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	srv := service.NewTransactionService()
+	srv.SetCakeRepository(cakeRepository.NewCakeRepository())
 	srv.Delete(mux.Vars(r)["id"])
 
 	res := xtremeres.Response{}
@@ -74,6 +75,7 @@ func (TransactionHandler) ReportExcel(w http.ResponseWriter, r *http.Request) {
 	form.Validate()
 
 	srv := service.NewTransactionService()
+	srv.SetCakeRepository(cakeRepository.NewCakeRepository())
 	filename := srv.ReportExcel(form)
 
 	res := xtremeres.Response{Object: filename}
